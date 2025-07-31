@@ -1,0 +1,77 @@
+#ddev-generated
+# If you remove the ddev-generated line above you
+# are responsible for maintaining this file. DDEV will not then
+# update it, for example if you add `additional_hostnames`, etc.
+
+http:
+  routers:
+    backend-web-80-http:
+      entrypoints:
+        - http-80
+      rule: HostRegexp(`^backend\.ddev\.site$`)
+      
+      service: "backend-web-80"
+      ruleSyntax: v3
+      tls: false
+      # middlewares:
+      #   - "backend-redirectHttps"
+    backend-web-8025-http:
+      entrypoints:
+        - http-8025
+      rule: HostRegexp(`^backend\.ddev\.site$`)
+      
+      service: "backend-web-8025"
+      ruleSyntax: v3
+      tls: false
+      # middlewares:
+      #   - "backend-redirectHttps"
+    
+    
+    
+    backend-web-80-https:
+      entrypoints:
+        - http-443
+      rule: HostRegexp(`^backend\.ddev\.site$`)
+      
+      service: "backend-web-80"
+      ruleSyntax: v3
+      
+      tls: true
+      
+    backend-web-8025-https:
+      entrypoints:
+        - http-8026
+      rule: HostRegexp(`^backend\.ddev\.site$`)
+      
+      service: "backend-web-8025"
+      ruleSyntax: v3
+      
+      tls: true
+      
+    
+
+  middlewares:
+    backend-redirectHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    backend-web-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-backend-web:80
+        
+    backend-web-8025:
+      loadbalancer:
+        servers:
+          - url: http://ddev-backend-web:8025
+        
+    
+    
+    
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/backend.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/backend.key

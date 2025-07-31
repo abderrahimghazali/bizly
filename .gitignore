@@ -1,0 +1,268 @@
+# ===========================
+# Bizly Project - .gitignore
+# ===========================
+
+# ===========================
+# Frontend (Next.js)
+# ===========================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Testing
+frontend/coverage/
+frontend/.nyc_output
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Production
+frontend/build
+
+# Misc
+frontend/.DS_Store
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Local env files
+frontend/.env
+frontend/.env*.local
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Vercel
+frontend/.vercel
+
+# Typescript
+frontend/*.tsbuildinfo
+
+# ===========================
+# Backend (Laravel)
+# ===========================
+
+# Dependencies
+backend/vendor/
+backend/node_modules/
+
+# Laravel specific
+backend/.env
+backend/.env.backup
+backend/.env.production
+backend/.phpunit.result.cache
+backend/Homestead.json
+backend/Homestead.yaml
+backend/auth.json
+backend/npm-debug.log
+backend/yarn-error.log
+
+# Storage and cache
+backend/storage/*.key
+backend/storage/app/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/bootstrap/cache/*
+
+# Ignore storage directories but keep .gitkeep files
+!backend/storage/app/.gitkeep
+!backend/storage/app/public/.gitkeep
+!backend/storage/framework/.gitkeep
+!backend/storage/framework/cache/.gitkeep
+!backend/storage/framework/cache/data/.gitkeep
+!backend/storage/framework/sessions/.gitkeep
+!backend/storage/framework/testing/.gitkeep
+!backend/storage/framework/views/.gitkeep
+!backend/storage/logs/.gitkeep
+
+# IDE and editor files
+backend/.idea/
+backend/.vscode/
+backend/*.swp
+backend/*.swo
+
+# Composer
+backend/composer.phar
+
+# Laravel Mix
+backend/public/hot
+backend/public/storage
+backend/public/js/
+backend/public/css/
+backend/mix-manifest.json
+
+# ===========================
+# DDEV (Development Environment)
+# ===========================
+
+# DDEV generated files
+backend/.ddev/.webimageBuild
+backend/.ddev/.webImageExtra
+backend/.ddev/.dbimageBuild
+backend/.ddev/.dbImageExtra
+backend/.ddev/.ddev-docker-compose*
+backend/.ddev/.gitignore
+
+# ===========================
+# System Files
+# ===========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.DocumentRevisions-V100
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================
+# IDE and Editors
+# ===========================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# PhpStorm/IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===========================
+# Logs and Databases
+# ===========================
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# ===========================
+# Temporary and Cache Files
+# ===========================
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ===========================
+# Security and Sensitive Data
+# ===========================
+
+# Environment variables and secrets
+.env*
+!.env.example
+*.key
+*.pem
+*.p12
+*.p8
+*.cer
+*.crt
+
+# API keys and tokens
+*secret*
+*token*
+*key*
+!public.key.example
+
+# ===========================
+# Miscellaneous
+# ===========================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
