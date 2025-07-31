@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { useEffect } from "react"
-import { Logo } from "@/components/logo"
+import { Logo } from "@/components/marketing/logo"
 
 export default function Landing() {
   const { isAuthenticated, isLoading, checkAuth, user } = useAuth()

@@ -2,7 +2,6 @@
 
 import { RoleGuard } from '@/components/rbac/role-guard';
 import { PermissionWrapper } from '@/components/rbac/permission-wrapper';
-import { UserRoleBadge } from '@/components/rbac/user-role-badge';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,6 @@ export default function CompaniesPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <UserRoleBadge />
           <PermissionWrapper 
             permission="create_company"
             fallback={
@@ -125,50 +123,7 @@ export default function CompaniesPage() {
           ))}
         </div>
 
-        {/* Role-specific information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Access Level</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Current Role:</h4>
-                <UserRoleBadge />
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Company Permissions:</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <span className={permissions.canViewAllCompanies ? 'text-green-600' : 'text-red-600'}>
-                      {permissions.canViewAllCompanies ? '✓' : '✗'}
-                    </span>
-                    <span>View All Companies</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={permissions.canCreateCompany ? 'text-green-600' : 'text-red-600'}>
-                      {permissions.canCreateCompany ? '✓' : '✗'}
-                    </span>
-                    <span>Create Company</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={permissions.canEditCompany ? 'text-green-600' : 'text-red-600'}>
-                      {permissions.canEditCompany ? '✓' : '✗'}
-                    </span>
-                    <span>Edit Company</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={permissions.canDeleteCompany ? 'text-green-600' : 'text-red-600'}>
-                      {permissions.canDeleteCompany ? '✓' : '✗'}
-                    </span>
-                    <span>Delete Company</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </RoleGuard>
     </div>
   );

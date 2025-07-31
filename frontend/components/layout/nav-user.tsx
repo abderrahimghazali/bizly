@@ -54,7 +54,7 @@ export function NavUser() {
                                    <Avatar className="h-8 w-8 rounded-lg grayscale">
                        <AvatarImage src="" alt={user.name} />
                        <AvatarFallback className="rounded-lg">
-                         {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                         {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                        </AvatarFallback>
                      </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">

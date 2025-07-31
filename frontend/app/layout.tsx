@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { QueryProvider } from "@/components/query-provider";
-import { HydrationProvider } from "@/components/hydration-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { HydrationProvider } from "@/components/providers/hydration-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({

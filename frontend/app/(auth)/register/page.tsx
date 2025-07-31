@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AuthGuard } from "@/components/auth-guard"
+import { AuthGuard } from "@/components/auth/auth-guard"
 import { useAuth } from "@/lib/hooks/useAuth"
-import { Logo } from "@/components/logo"
+import { Logo } from "@/components/marketing/logo"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")

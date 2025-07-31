@@ -1,8 +1,8 @@
 "use client"
 
-import { AuthGuard } from "@/components/auth-guard"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
+import { AuthGuard } from "@/components/auth/auth-guard"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { SiteHeader } from "@/components/layout/site-header"
 import {
   SidebarInset,
   SidebarProvider,
