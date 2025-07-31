@@ -5,10 +5,10 @@ import {
   IconDashboard,
   IconFileDescription,
   IconFolder,
-  IconInnerShadowTop,
   IconSettings,
   IconUsers,
 } from "@tabler/icons-react"
+import { Logo } from "@/components/logo"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -38,6 +38,28 @@ const data = {
       title: "Documents",
       url: "/documents",
       icon: IconFileDescription,
+      items: [
+        {
+          title: "All Documents",
+          url: "/documents",
+        },
+        {
+          title: "Contracts",
+          url: "/documents/contracts",
+        },
+        {
+          title: "Invoices",
+          url: "/documents/invoices",
+        },
+        {
+          title: "Reports",
+          url: "/documents/reports",
+        },
+        {
+          title: "Templates",
+          url: "/documents/templates",
+        },
+      ],
     },
     {
       title: "Companies",
@@ -60,15 +82,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="/dashboard">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Bizly</span>
-              </a>
-            </SidebarMenuButton>
+                               <SidebarMenuButton
+                     asChild
+                     className="data-[slot=sidebar-menu-button]:!p-1.5"
+                   >
+                     <a href="/dashboard">
+                       <Logo width={20} height={26} />
+                       <span className="text-base font-semibold">Bizly</span>
+                     </a>
+                   </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

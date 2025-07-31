@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { useEffect } from "react"
+import { Logo } from "@/components/logo"
 
 export default function Landing() {
   const { isAuthenticated, isLoading, checkAuth, user } = useAuth()
@@ -16,7 +17,8 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       {/* Top Navigation */}
       <nav className="flex items-center justify-between p-6">
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-3">
+          <Logo width={24} height={32} />
           <h1 className="text-xl font-semibold">Bizly</h1>
         </div>
         

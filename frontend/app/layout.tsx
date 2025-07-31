@@ -17,6 +17,15 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Bizly",
   description: "Professional business management platform",
+  icons: {
+    icon: [
+      {
+        url: '/logo.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    shortcut: '/logo.svg',
+  },
 };
 
 export default function RootLayout({

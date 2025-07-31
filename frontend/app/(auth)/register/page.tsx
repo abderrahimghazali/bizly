@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AuthGuard } from "@/components/auth-guard"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { Logo } from "@/components/logo"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -71,8 +72,9 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <Link href="/" className="text-2xl font-bold">
-              Bizly
+            <Link href="/" className="flex items-center space-x-2">
+              <Logo width={24} height={32} />
+              <span className="text-2xl font-bold">Bizly</span>
             </Link>
           </div>
           <CardTitle className="text-2xl text-center">Create an account</CardTitle>
