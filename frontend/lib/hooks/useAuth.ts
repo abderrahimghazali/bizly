@@ -23,16 +23,21 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean; // Add hydration state
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  setHydrated: (hydrated: boolean) => void; // Add hydration setter
 }
 
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
+  isHydrated: false,
+
+  setHydrated: (hydrated: boolean) => set({ isHydrated: hydrated }),
 
   login: async (credentials) => {
     const response = await authApi.login(credentials);
@@ -55,17 +60,17 @@ export const useAuth = create<AuthState>((set) => ({
   checkAuth: async () => {
     const token = localStorage.getItem('auth-token');
     if (!token) {
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, isAuthenticated: false, isLoading: false, isHydrated: true });
       return;
     }
 
     try {
       const response = await authApi.me();
-      set({ user: response.user, isAuthenticated: true, isLoading: false });
+      set({ user: response.user, isAuthenticated: true, isLoading: false, isHydrated: true });
     } catch {
       // Token is invalid or expired
       localStorage.removeItem('auth-token');
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, isAuthenticated: false, isLoading: false, isHydrated: true });
     }
   },
 }));

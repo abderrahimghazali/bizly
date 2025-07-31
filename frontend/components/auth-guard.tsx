@@ -10,7 +10,7 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, requireAuth = true }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, checkAuth } = useAuth()
+  const { isAuthenticated, isLoading, isHydrated, checkAuth } = useAuth()
   const router = useRouter()
   const [hasChecked, setHasChecked] = useState(false)
 
@@ -20,23 +20,23 @@ export function AuthGuard({ children, requireAuth = true }: AuthGuardProps) {
       setHasChecked(true)
     }
     
-    if (!hasChecked) {
+    if (!hasChecked && isHydrated) {
       performAuthCheck()
     }
-  }, [checkAuth, hasChecked])
+  }, [checkAuth, hasChecked, isHydrated])
 
   useEffect(() => {
-    if (hasChecked && !isLoading) {
+    if (hasChecked && !isLoading && isHydrated) {
       if (requireAuth && !isAuthenticated) {
         router.push('/login')
       } else if (!requireAuth && isAuthenticated) {
         router.push('/dashboard')
       }
     }
-  }, [isAuthenticated, isLoading, requireAuth, router, hasChecked])
+  }, [isAuthenticated, isLoading, requireAuth, router, hasChecked, isHydrated])
 
-  // Show loading while checking auth
-  if (!hasChecked || isLoading) {
+  // Show loading while checking auth or not hydrated
+  if (!isHydrated || !hasChecked || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
