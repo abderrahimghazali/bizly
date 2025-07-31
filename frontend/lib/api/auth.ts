@@ -8,6 +8,7 @@ export interface LoginCredentials {
 export interface RegisterData extends LoginCredentials {
   name: string;
   password_confirmation: string;
+  role?: string;
 }
 
 export const authApi = {

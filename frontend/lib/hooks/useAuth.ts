@@ -5,6 +5,12 @@ interface User {
   id: number;
   name: string;
   email: string;
+  role: string;
+  role_label: string;
+  permissions: string[];
+  email_verified_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface LoginCredentials {
@@ -17,18 +23,26 @@ interface RegisterData {
   email: string;
   password: string;
   password_confirmation: string;
+  role?: string;
 }
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  isHydrated: boolean; // Add hydration state
+  isHydrated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
-  setHydrated: (hydrated: boolean) => void; // Add hydration setter
+  setHydrated: (hydrated: boolean) => void;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
+  hasPermission: (permission: string) => boolean;
+  isAdmin: () => boolean;
+  isManager: () => boolean;
+  isEmployee: () => boolean;
+  isClient: () => boolean;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -72,5 +86,41 @@ export const useAuth = create<AuthState>((set) => ({
       localStorage.removeItem('auth-token');
       set({ user: null, isAuthenticated: false, isLoading: false, isHydrated: true });
     }
+  },
+
+  // Role-based access control methods
+  hasRole: (role: string) => {
+    const { user } = useAuth.getState();
+    return user?.role === role;
+  },
+
+  hasAnyRole: (roles: string[]) => {
+    const { user } = useAuth.getState();
+    return user ? roles.includes(user.role) : false;
+  },
+
+  hasPermission: (permission: string) => {
+    const { user } = useAuth.getState();
+    return user?.permissions.includes(permission) ?? false;
+  },
+
+  isAdmin: () => {
+    const { user } = useAuth.getState();
+    return user?.role === 'admin';
+  },
+
+  isManager: () => {
+    const { user } = useAuth.getState();
+    return user?.role === 'manager';
+  },
+
+  isEmployee: () => {
+    const { user } = useAuth.getState();
+    return user?.role === 'employee';
+  },
+
+  isClient: () => {
+    const { user } = useAuth.getState();
+    return user?.role === 'client';
   },
 }));

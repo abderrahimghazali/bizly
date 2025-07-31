@@ -23,6 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { UserRoleBadge } from "@/components/rbac/user-role-badge"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -58,9 +59,12 @@ export function NavUser() {
                      </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground truncate text-xs">
+                    {user.email}
+                  </span>
+                  <UserRoleBadge className="text-xs" />
+                </div>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>

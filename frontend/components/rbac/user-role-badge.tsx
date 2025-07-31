@@ -1,0 +1,37 @@
+'use client';
+
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { cn } from '@/lib/utils';
+
+interface UserRoleBadgeProps {
+  className?: string;
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+}
+
+const ROLE_COLORS = {
+  admin: 'bg-red-100 text-red-800 hover:bg-red-200',
+  manager: 'bg-blue-100 text-blue-800 hover:bg-blue-200', 
+  employee: 'bg-green-100 text-green-800 hover:bg-green-200',
+  client: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+};
+
+export function UserRoleBadge({ className, variant = 'outline' }: UserRoleBadgeProps) {
+  const { user } = useAuth();
+
+  if (!user) return null;
+
+  const colorClass = ROLE_COLORS[user.role as keyof typeof ROLE_COLORS];
+
+  return (
+    <Badge 
+      variant={variant}
+      className={cn(
+        variant === 'outline' && colorClass,
+        className
+      )}
+    >
+      {user.role_label}
+    </Badge>
+  );
+}

@@ -7,38 +7,85 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DocumentController;
 
-// Test routes
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'API is working!',
-        'laravel_version' => app()->version(),
-        'php_version' => PHP_VERSION,
-    ]);
-});
-
 // Public routes
-Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
-});
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth routes
-    Route::prefix('auth')->group(function () {
-        Route::get('/me', [AuthController::class, 'me']);
-        Route::post('/logout', [AuthController::class, 'logout']);
+    // Authentication routes
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    
+    // Company routes with role-based access
+    Route::middleware(['role:admin,manager,employee'])->group(function () {
+        Route::get('/companies', [CompanyController::class, 'index']);
+        Route::get('/companies/{company}', [CompanyController::class, 'show']);
     });
-
-    // Resource routes
-    Route::apiResource('companies', CompanyController::class);
-    Route::apiResource('contacts', ContactController::class);
-    Route::apiResource('documents', DocumentController::class);
-
-    // Nested routes
-    Route::prefix('companies/{company}')->group(function () {
-        Route::get('/contacts', [CompanyController::class, 'contacts']);
-        Route::get('/documents', [CompanyController::class, 'documents']);
-        Route::get('/activities', [CompanyController::class, 'activities']);
+    
+    Route::middleware(['permission:create_company'])->group(function () {
+        Route::post('/companies', [CompanyController::class, 'store']);
+    });
+    
+    Route::middleware(['permission:edit_company'])->group(function () {
+        Route::put('/companies/{company}', [CompanyController::class, 'update']);
+    });
+    
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::delete('/companies/{company}', [CompanyController::class, 'destroy']);
+    });
+    
+    // Contact routes with role-based access
+    Route::middleware(['role:admin,manager,employee'])->group(function () {
+        Route::get('/contacts', [ContactController::class, 'index']);
+        Route::get('/contacts/{contact}', [ContactController::class, 'show']);
+    });
+    
+    Route::middleware(['permission:create_contact'])->group(function () {
+        Route::post('/contacts', [ContactController::class, 'store']);
+    });
+    
+    Route::middleware(['permission:edit_contact'])->group(function () {
+        Route::put('/contacts/{contact}', [ContactController::class, 'update']);
+    });
+    
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::delete('/contacts/{contact}', [ContactController::class, 'destroy']);
+    });
+    
+    // Document routes with role-based access
+    Route::middleware(['role:admin,manager,employee'])->group(function () {
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/{document}', [DocumentController::class, 'show']);
+    });
+    
+    Route::middleware(['permission:create_document'])->group(function () {
+        Route::post('/documents', [DocumentController::class, 'store']);
+    });
+    
+    Route::middleware(['permission:edit_document'])->group(function () {
+        Route::put('/documents/{document}', [DocumentController::class, 'update']);
+    });
+    
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+    });
+    
+    // Admin-only routes
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/admin/users', function () {
+            return response()->json(['message' => 'Admin users endpoint']);
+        });
+        
+        Route::post('/admin/users/{user}/assign-role', function () {
+            return response()->json(['message' => 'Role assigned successfully']);
+        });
+    });
+    
+    // Manager and Admin routes
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::get('/manager/team', function () {
+            return response()->json(['message' => 'Team management endpoint']);
+        });
     });
 });
