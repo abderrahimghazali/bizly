@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+
 import { 
   IconArrowLeft, 
   IconUser, 
@@ -25,6 +26,7 @@ import {
 } from '@tabler/icons-react';
 import { UserRoleBadge } from '@/components/rbac/user-role-badge';
 import { usersApi, User } from '@/lib/api/users';
+import { rolesApi, Role } from '@/lib/api/roles';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -42,7 +44,9 @@ export default function EditUserPage() {
   const { user: currentUser } = useAuth();
   
   const [user, setUser] = useState<User | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<EditUserFormData>({
@@ -51,6 +55,22 @@ export default function EditUserPage() {
     role: 'employee',
     status: 'pending'
   });
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const response = await rolesApi.getAll();
+        setRoles(response.roles);
+      } catch (err) {
+        console.error('Failed to fetch roles:', err);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -96,7 +116,7 @@ export default function EditUserPage() {
       await usersApi.update(user.id, formData);
       
       toast.success('User updated successfully');
-      router.push('/admin/users');
+      router.push('/users/list');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update user');
     } finally {
@@ -105,20 +125,12 @@ export default function EditUserPage() {
   };
 
   const handleCancel = () => {
-    router.push('/admin/users');
+    router.push('/users/list');
   };
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6">
-        <div className="flex items-center space-x-4 mb-6">
-          <Skeleton className="h-10 w-10" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-        
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Card>
@@ -159,18 +171,6 @@ export default function EditUserPage() {
   if (error || !user) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6">
-        <div className="flex items-center space-x-4 mb-6">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/users">
-              <IconArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit User</h1>
-            <p className="text-muted-foreground">User not found</p>
-          </div>
-        </div>
-        
         <Alert>
           <IconAlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -184,20 +184,6 @@ export default function EditUserPage() {
   return (
     <AdminOnly>
       <div className="flex-1 space-y-4 p-4 pt-6">
-        <div className="flex items-center space-x-4 mb-6">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/users">
-              <IconArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit User</h1>
-            <p className="text-muted-foreground">
-              Manage user information and permissions
-            </p>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Form */}
@@ -248,10 +234,11 @@ export default function EditUserPage() {
                           <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Administrator</SelectItem>
-                          <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="employee">Employee</SelectItem>
-                          <SelectItem value="client">Client</SelectItem>
+                          {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\UserRole;
 
 class RoleMiddleware
 {
@@ -23,12 +22,10 @@ class RoleMiddleware
             ], 401);
         }
 
-        $user = $request->user();
+        $user = $request->user()->load('role');
         
-        // Convert string roles to UserRole enums
-        $allowedRoles = array_map(fn($role) => UserRole::from($role), $roles);
-        
-        if (!$user->hasAnyRole($allowedRoles)) {
+        // Check if user has any of the required roles
+        if (!$user->hasAnyRole($roles)) {
             return response()->json([
                 'message' => 'Insufficient permissions. Required roles: ' . implode(', ', $roles)
             ], 403);

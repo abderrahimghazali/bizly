@@ -73,13 +73,20 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Admin-only routes
     Route::middleware(['role:admin'])->group(function () {
-        Route::get('/admin/users', function () {
-            return response()->json(['message' => 'Admin users endpoint']);
-        });
+        Route::get('/admin/users', [AuthController::class, 'getAllUsers']);
+        Route::get('/admin/users/{user}', [AuthController::class, 'getUser']);
+        Route::put('/admin/users/{user}', [AuthController::class, 'updateUser']);
+        Route::delete('/admin/users/{user}', [AuthController::class, 'deleteUser']);
         
         Route::post('/admin/users/{user}/assign-role', function () {
             return response()->json(['message' => 'Role assigned successfully']);
         });
+        
+        // Role management routes
+        Route::apiResource('roles', \App\Http\Controllers\Api\RoleController::class);
+        Route::get('permissions', [\App\Http\Controllers\Api\RoleController::class, 'permissions']);
+        Route::get('permissions-matrix', [\App\Http\Controllers\Api\RoleController::class, 'permissionsMatrix']);
+        Route::post('roles/{role}/permissions', [\App\Http\Controllers\Api\RoleController::class, 'updatePermissions']);
     });
     
     // Manager and Admin routes

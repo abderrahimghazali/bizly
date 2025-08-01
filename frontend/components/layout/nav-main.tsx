@@ -39,12 +39,47 @@ export function NavMain({
     setIsMounted(true)
   }, [])
 
+  // Auto-expand parent menu items when their sub-items are active
+  useEffect(() => {
+    if (!isMounted) return
+    
+    setOpenItems(prev => {
+      const itemsToOpen = new Set(prev) // Preserve manually opened items
+      
+      items.forEach((item) => {
+        const hasSubItems = item.items && item.items.length > 0
+        if (hasSubItems) {
+          // Check if any sub-item matches the current pathname
+          const hasActiveSubItem = item.items?.some(subItem => pathname === subItem.url)
+          if (hasActiveSubItem) {
+            itemsToOpen.add(item.title)
+          }
+        }
+      })
+      
+      return Array.from(itemsToOpen)
+    })
+  }, [pathname, items, isMounted])
+
   const toggleItem = (title: string) => {
-    setOpenItems(prev => 
-      prev.includes(title) 
-        ? prev.filter(item => item !== title)
-        : [...prev, title]
-    )
+    setOpenItems(prev => {
+      const isCurrentlyOpen = prev.includes(title)
+      
+      if (isCurrentlyOpen) {
+        // Only allow closing if no sub-item is currently active
+        const item = items.find(item => item.title === title)
+        const hasActiveSubItem = item?.items?.some(subItem => pathname === subItem.url)
+        
+        if (hasActiveSubItem) {
+          // Don't close if a sub-item is active
+          return prev
+        }
+        
+        return prev.filter(item => item !== title)
+      } else {
+        return [...prev, title]
+      }
+    })
   }
 
   // Don't render until mounted to prevent hydration mismatch

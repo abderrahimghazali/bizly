@@ -22,7 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
+        'status',
+        'email_verified_at',
     ];
 
     /**
@@ -45,8 +47,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => UserRole::class,
         ];
+    }
+
+    /**
+     * Get the role for the user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 
     /**
@@ -82,19 +91,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role
+     * Check if user has a specific role by name
      */
-    public function hasRole(UserRole $role): bool
+    public function hasRole(string $roleName): bool
     {
-        return $this->role === $role;
+        return $this->role && $this->role->name === $roleName;
     }
 
     /**
-     * Check if user has any of the given roles
+     * Check if user has any of the given role names
      */
-    public function hasAnyRole(array $roles): bool
+    public function hasAnyRole(array $roleNames): bool
     {
-        return in_array($this->role, $roles);
+        return $this->role && in_array($this->role->name, $roleNames);
     }
 
     /**
@@ -102,7 +111,7 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permission): bool
     {
-        return $this->role->hasPermission($permission);
+        return $this->role && $this->role->hasPermission($permission);
     }
 
     /**
@@ -110,7 +119,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === UserRole::ADMIN;
+        return $this->hasRole('admin');
     }
 
     /**
@@ -118,7 +127,7 @@ class User extends Authenticatable
      */
     public function isManager(): bool
     {
-        return $this->role === UserRole::MANAGER;
+        return $this->hasRole('manager');
     }
 
     /**
@@ -126,7 +135,7 @@ class User extends Authenticatable
      */
     public function isEmployee(): bool
     {
-        return $this->role === UserRole::EMPLOYEE;
+        return $this->hasRole('employee');
     }
 
     /**
@@ -134,14 +143,14 @@ class User extends Authenticatable
      */
     public function isClient(): bool
     {
-        return $this->role === UserRole::CLIENT;
+        return $this->hasRole('client');
     }
 
     /**
-     * Get roles that this user can assign to others
+     * Get all permissions for this user
      */
-    public function canAssignRoles(): array
+    public function getPermissions(): array
     {
-        return $this->role->canAssignRoles();
+        return $this->role ? $this->role->permissions->pluck('name')->toArray() : [];
     }
 }

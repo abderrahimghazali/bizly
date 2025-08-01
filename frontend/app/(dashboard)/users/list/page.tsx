@@ -9,7 +9,7 @@ import { IconShield, IconUserPlus, IconSettings, IconAlertCircle } from '@tabler
 import { usersApi, User } from '@/lib/api/users';
 import { UsersDataTable } from '@/components/data/users-data-table';
 
-export default function AdminUsersPage() {
+export default function UsersListPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +32,6 @@ export default function AdminUsersPage() {
   }, []);
   return (
     <div className="flex-1 space-y-4 p-4 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">User Management</h2>
-      </div>
-
       {/* Admin-only section */}
       <AdminOnly
         fallback={
@@ -125,10 +121,7 @@ export default function AdminUsersPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Users Management</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {error && (
               <Alert className="mb-4">
                 <IconAlertCircle className="h-4 w-4" />

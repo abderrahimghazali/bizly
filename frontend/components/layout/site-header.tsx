@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { IconBell, IconHelp } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { 
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -29,7 +38,15 @@ export function SiteHeader() {
         return "Companies"
       case "/settings":
         return "Settings"
+      case "/users/list":
+      case "/users/permissions":
+      case "/users/roles":
+        return "User Management"
       default:
+        // Handle dynamic routes like /users/[id]/edit
+        if (pathname.startsWith("/users/") && pathname.endsWith("/edit")) {
+          return "User Management"
+        }
         return "Dashboard"
     }
   }
@@ -42,7 +59,64 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">{getPageTitle()}</h1>
+        {/* Show breadcrumbs for user management sub-pages */}
+        {(() => {
+          if (pathname.startsWith("/users/") && pathname.endsWith("/edit")) {
+            return (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/users/list">User Management</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Edit User</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )
+          }
+          
+          if (pathname === "/users/permissions") {
+            return (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/users/list">User Management</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Permissions</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )
+          }
+          
+          if (pathname === "/users/roles") {
+            return (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/users/list">User Management</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Roles</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )
+          }
+          
+          return <h1 className="text-base font-medium">{getPageTitle()}</h1>
+        })()}
         
         {/* Right side icons */}
         <div className="ml-auto flex items-center gap-2">

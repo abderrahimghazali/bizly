@@ -22,7 +22,7 @@ class PermissionMiddleware
             ], 401);
         }
 
-        $user = $request->user();
+        $user = $request->user()->load('role.permissions');
         
         foreach ($permissions as $permission) {
             if (!$user->hasPermission($permission)) {

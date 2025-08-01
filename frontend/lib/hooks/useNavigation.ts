@@ -35,43 +35,43 @@ export function useNavigation() {
         title: "Companies",
         url: "/companies",
         icon: IconFolder,
-        permissions: ['view_all_companies', 'view_assigned_companies', 'view_own_companies'],
+        permissions: ['view_companies'],
       },
       {
         title: "Contacts",
         url: "/contacts",
         icon: IconUsers,
-        permissions: ['view_all_contacts', 'view_assigned_contacts', 'view_own_contacts'],
+        permissions: ['view_contacts'],
       },
       {
         title: "Documents",
         url: "/documents",
         icon: IconFileDescription,
-        permissions: ['view_all_documents', 'view_assigned_documents', 'view_own_documents'],
+        permissions: ['view_documents'],
         items: [
           {
             title: "All Documents",
             url: "/documents",
             icon: IconFileDescription,
-            permissions: ['view_all_documents', 'view_assigned_documents', 'view_own_documents'],
+            permissions: ['view_documents'],
           },
           {
             title: "Contracts",
             url: "/documents/contracts",
             icon: IconFileDescription,
-            permissions: ['view_all_documents', 'view_assigned_documents', 'view_own_documents'],
+            permissions: ['view_documents'],
           },
           {
             title: "Invoices",
             url: "/documents/invoices",
             icon: IconFileDescription,
-            permissions: ['view_all_documents', 'view_assigned_documents', 'view_own_documents'],
+            permissions: ['view_documents'],
           },
           {
             title: "Reports",
             url: "/documents/reports",
             icon: IconFileDescription,
-            permissions: ['view_all_documents', 'view_assigned_documents', 'view_own_documents'],
+            permissions: ['view_documents'],
           },
           {
             title: "Templates",
@@ -87,9 +87,29 @@ export function useNavigation() {
     if (permissions.isAdmin) {
       mainNavItems.push({
         title: "User Management",
-        url: "/admin/users",
+        url: "/users/list",
         icon: IconUserCog,
         roles: ['admin'],
+        items: [
+          {
+            title: "List",
+            url: "/users/list",
+            icon: IconUsers,
+            roles: ['admin'],
+          },
+          {
+            title: "Permissions",
+            url: "/users/permissions",
+            icon: IconShield,
+            roles: ['admin'],
+          },
+          {
+            title: "Roles",
+            url: "/users/roles",
+            icon: IconUserCog,
+            roles: ['admin'],
+          },
+        ],
       });
     }
 
