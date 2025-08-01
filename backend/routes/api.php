@@ -71,6 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
     });
     
+    // CRM routes
+    Route::middleware(['role:admin,manager,employee'])->group(function () {
+        Route::apiResource('leads', \App\Http\Controllers\Api\LeadController::class);
+    });
+    
     // Admin-only routes
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/admin/users', [AuthController::class, 'getAllUsers']);

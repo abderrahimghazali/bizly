@@ -11,6 +11,11 @@ import {
   IconUserCog,
   IconShield,
   IconAddressBook,
+  IconChartLine,
+  IconTargetArrow,
+  IconHandshake,
+  IconCalendarEvent,
+  IconChartBar,
 } from "@tabler/icons-react";
 
 export interface NavItem {
@@ -43,6 +48,38 @@ export function useNavigation() {
         url: "/contacts",
         icon: IconAddressBook,
         permissions: ['view_contacts'],
+      },
+      {
+        title: "CRM",
+        url: "/crm/leads",
+        icon: IconChartLine,
+        permissions: ['view_companies'], // Using existing permission for now
+        items: [
+          {
+            title: "Leads",
+            url: "/crm/leads",
+            icon: IconTargetArrow,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Deals",
+            url: "/crm/deals",
+            icon: IconHandshake,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Activities",
+            url: "/crm/activities",
+            icon: IconCalendarEvent,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Reports",
+            url: "/crm/reports",
+            icon: IconChartBar,
+            permissions: ['view_companies'],
+          },
+        ],
       },
       {
         title: "Documents",

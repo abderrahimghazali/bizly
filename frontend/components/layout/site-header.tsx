@@ -1,6 +1,14 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import Link from "next/link"
 import { IconBell, IconHelp } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
@@ -11,14 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -39,16 +39,10 @@ export function SiteHeader() {
       case "/settings":
         return "Settings"
       case "/users/list":
-      case "/users/permissions":
-      case "/users/roles":
         return "Users"
       case "/manager/team":
         return "Teams"
       default:
-        // Handle dynamic routes like /users/[id]/edit
-        if (pathname.startsWith("/users/") && pathname.endsWith("/edit")) {
-          return "Users"
-        }
         return "Dashboard"
     }
   }
@@ -61,8 +55,36 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        {/* Show breadcrumbs for user management sub-pages */}
+        {/* Show breadcrumbs for sub-pages */}
         {(() => {
+          // CRM breadcrumbs
+          if (pathname.startsWith("/crm/")) {
+            const crmPage = pathname.split("/")[2];
+            const pageNames: Record<string, string> = {
+              'leads': 'Leads',
+              'deals': 'Deals', 
+              'activities': 'Activities',
+              'reports': 'Reports'
+            };
+            
+            return (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/crm/leads">CRM</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{pageNames[crmPage] || crmPage}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )
+          }
+          
+          // Users breadcrumbs
           if (pathname.startsWith("/users/") && pathname.endsWith("/edit")) {
             return (
               <Breadcrumb>
