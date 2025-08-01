@@ -17,6 +17,9 @@ import {
   IconCircleCheckFilled,
   IconClock,
   IconX,
+  IconArrowUp,
+  IconArrowDown,
+  IconArrowsSort,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -51,6 +54,17 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -80,6 +94,28 @@ import { UserRoleBadge } from "@/components/rbac/user-role-badge"
 import { User, usersApi } from "@/lib/api/users"
 import { useAuth } from "@/lib/hooks/useAuth"
 
+// Sortable header component
+function SortableHeader({ column, children }: { column: any; children: React.ReactNode }) {
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto p-0 font-medium hover:bg-transparent"
+    >
+      <span className="flex items-center space-x-1">
+        <span>{children}</span>
+        {column.getIsSorted() === "asc" ? (
+          <IconArrowUp className="h-4 w-4" />
+        ) : column.getIsSorted() === "desc" ? (
+          <IconArrowDown className="h-4 w-4" />
+        ) : (
+          <IconArrowsSort className="h-4 w-4 opacity-50" />
+        )}
+      </span>
+    </Button>
+  )
+}
+
 
 
 export function UsersDataTable({
@@ -95,6 +131,27 @@ export function UsersDataTable({
         user.id === updatedUser.id ? updatedUser : user
       )
     )
+  }
+
+  const handleUserDelete = async (userId: number, userName: string) => {
+    try {
+      await usersApi.delete(userId);
+      setData(prevData => prevData.filter(user => user.id !== userId));
+      toast.success(`${userName} deleted successfully`);
+    } catch (error) {
+      toast.error("Failed to delete user");
+    }
+  }
+
+  const handleBulkDelete = async (userIds: number[], count: number) => {
+    try {
+      await Promise.all(userIds.map(id => usersApi.delete(id)));
+      setData(prevData => prevData.filter(user => !userIds.includes(user.id)));
+      toast.success(`${count} user${count > 1 ? 's' : ''} deleted successfully`);
+      setRowSelection({}); // Clear selection after delete
+    } catch (error) {
+      toast.error("Failed to delete users");
+    }
   }
 
   const columns: ColumnDef<User>[] = React.useMemo(() => [
@@ -127,7 +184,7 @@ export function UsersDataTable({
     },
     {
       accessorKey: "name",
-      header: "Name",
+      header: ({ column }) => <SortableHeader column={column}>Name</SortableHeader>,
       cell: ({ row }) => {
         return <UserTableCellViewer user={row.original} onUserUpdate={handleUserUpdate} />
       },
@@ -135,7 +192,7 @@ export function UsersDataTable({
     },
     {
       accessorKey: "email",
-      header: "Email",
+      header: ({ column }) => <SortableHeader column={column}>Email</SortableHeader>,
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <IconMail className="h-4 w-4 text-muted-foreground" />
@@ -145,14 +202,14 @@ export function UsersDataTable({
     },
     {
       accessorKey: "role",
-      header: "Role",
+      header: ({ column }) => <SortableHeader column={column}>Role</SortableHeader>,
       cell: ({ row }) => (
         <UserRoleBadge role={row.original.role} label={row.original.role_label} />
       ),
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: ({ column }) => <SortableHeader column={column}>Status</SortableHeader>,
       cell: ({ row }) => {
         const status = row.original.status;
         const getStatusColor = (status: string) => {
@@ -227,28 +284,40 @@ export function UsersDataTable({
                 View
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive focus:text-destructive"
-                onClick={() => {
-                  toast.promise(
-                    usersApi.delete(row.original.id), 
-                    {
-                      loading: `Deleting ${row.original.name}...`,
-                      success: "User deleted successfully",
-                      error: "Failed to delete user",
-                    }
-                  )
-                }}
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem 
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    <IconTrash className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete User</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete <strong>{row.original.name}</strong>? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      className="bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
+                      onClick={() => handleUserDelete(row.original.id, row.original.name)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
         );
       },
     },
-  ], [handleUserUpdate])
+  ], [handleUserUpdate, handleUserDelete])
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -344,24 +413,34 @@ export function UsersDataTable({
             </DropdownMenuContent>
           </DropdownMenu>
           {selectedRowsCount > 0 && (
-            <Button 
-              variant="destructive" 
-              size="sm"
-              onClick={() => {
-                const selectedUserIds = table.getSelectedRowModel().rows.map(row => row.original.id);
-                toast.promise(
-                  Promise.all(selectedUserIds.map(id => usersApi.delete(id))), 
-                  {
-                    loading: `Deleting ${selectedRowsCount} users...`,
-                    success: "Users deleted successfully",
-                    error: "Failed to delete users",
-                  }
-                )
-              }}
-            >
-              <IconTrash className="mr-2 h-4 w-4" />
-              Delete ({selectedRowsCount})
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <IconTrash className="mr-2 h-4 w-4" />
+                  Delete ({selectedRowsCount})
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Users</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete {selectedRowsCount} user{selectedRowsCount > 1 ? 's' : ''}? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    className="bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
+                    onClick={() => {
+                      const selectedUserIds = table.getSelectedRowModel().rows.map(row => row.original.id);
+                      handleBulkDelete(selectedUserIds, selectedRowsCount);
+                    }}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
@@ -546,7 +625,6 @@ function UserTableCellViewer({ user, onUserUpdate }: { user: User; onUserUpdate?
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
           <div className="flex items-center space-x-2">
             <span className="font-medium">{user.name}</span>
-            <UserRoleBadge role={user.role} label={user.role_label} />
           </div>
         </Button>
       </DrawerTrigger>

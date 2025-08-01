@@ -24,6 +24,11 @@ export const usersApi = {
     return response.data;
   },
 
+  create: async (data: { name: string; email: string; password: string; role: string; status: string }): Promise<{ user: User; message: string }> => {
+    const response = await apiClient.post('/admin/users', data);
+    return response.data;
+  },
+
   update: async (id: number, data: { name: string; email: string; role: string; status: string }): Promise<{ user: User }> => {
     const response = await apiClient.put(`/admin/users/${id}`, data);
     return response.data;

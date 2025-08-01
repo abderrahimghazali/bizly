@@ -41,11 +41,13 @@ export function SiteHeader() {
       case "/users/list":
       case "/users/permissions":
       case "/users/roles":
-        return "User Management"
+        return "Users"
+      case "/manager/team":
+        return "Teams"
       default:
         // Handle dynamic routes like /users/[id]/edit
         if (pathname.startsWith("/users/") && pathname.endsWith("/edit")) {
-          return "User Management"
+          return "Users"
         }
         return "Dashboard"
     }
@@ -67,7 +69,7 @@ export function SiteHeader() {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href="/users/list">User Management</Link>
+                      <Link href="/users/list">Users</Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
@@ -85,7 +87,7 @@ export function SiteHeader() {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href="/users/list">User Management</Link>
+                      <Link href="/users/list">Users</Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
@@ -103,7 +105,7 @@ export function SiteHeader() {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href="/users/list">User Management</Link>
+                      <Link href="/users/list">Users</Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />

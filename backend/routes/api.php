@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin-only routes
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/admin/users', [AuthController::class, 'getAllUsers']);
+        Route::post('/admin/users', [AuthController::class, 'createUser']);
         Route::get('/admin/users/{user}', [AuthController::class, 'getUser']);
         Route::put('/admin/users/{user}', [AuthController::class, 'updateUser']);
         Route::delete('/admin/users/{user}', [AuthController::class, 'deleteUser']);
@@ -91,8 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Manager and Admin routes
     Route::middleware(['role:admin,manager'])->group(function () {
-        Route::get('/manager/team', function () {
-            return response()->json(['message' => 'Team management endpoint']);
-        });
+        Route::get('/manager/team', [\App\Http\Controllers\Api\TeamController::class, 'getTeamHierarchy']);
+        Route::post('/manager/assign-employee', [\App\Http\Controllers\Api\TeamController::class, 'assignEmployee']);
     });
 });

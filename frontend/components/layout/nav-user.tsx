@@ -3,6 +3,8 @@
 import {
   IconDotsVertical,
   IconLogout,
+  IconUser,
+  IconBell,
 } from "@tabler/icons-react"
 
 import {
@@ -14,6 +16,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -58,12 +61,15 @@ export function NavUser() {
                        </AvatarFallback>
                      </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-medium">{user.name}</span>
+                  <UserRoleBadge role={user.role} label={user.role_label} />
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground truncate text-xs">
                     {user.email}
                   </span>
-                  <UserRoleBadge className="text-xs" />
+                  
                 </div>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -75,12 +81,21 @@ export function NavUser() {
             align="end"
             sideOffset={4}
           >
-                               <DropdownMenuItem
-                     onClick={(e) => {
-                       e.preventDefault()
-                       handleLogout()
-                     }}
-                   >
+            <DropdownMenuItem>
+              <IconUser className="mr-2 h-4 w-4" />
+              Account
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <IconBell className="mr-2 h-4 w-4" />
+              Notifications
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault()
+                handleLogout()
+              }}
+            >
               <IconLogout className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>

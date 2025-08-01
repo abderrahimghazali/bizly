@@ -53,7 +53,12 @@ class RoleController extends Controller
         
         $matrix = [];
         foreach ($roles as $role) {
-            $matrix[$role->id] = $role->permissions->pluck('id')->toArray();
+            if ($role->name === 'admin') {
+                // Admin always has all permissions
+                $matrix[$role->id] = $permissions->pluck('id')->toArray();
+            } else {
+                $matrix[$role->id] = $role->permissions->pluck('id')->toArray();
+            }
         }
         
         return response()->json([
@@ -81,6 +86,13 @@ class RoleController extends Controller
      */
     public function updatePermissions(Request $request, Role $role)
     {
+        // Prevent updating admin role permissions
+        if ($role->name === 'admin') {
+            return response()->json([
+                'message' => 'Admin role permissions cannot be modified. Admin always has all permissions.'
+            ], 403);
+        }
+
         $request->validate([
             'permissions' => 'required|array',
             'permissions.*' => 'exists:permissions,id'

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role_id',
         'status',
         'email_verified_at',
+        'manager_id',
     ];
 
     /**
@@ -152,5 +153,29 @@ class User extends Authenticatable
     public function getPermissions(): array
     {
         return $this->role ? $this->role->permissions->pluck('name')->toArray() : [];
+    }
+
+    /**
+     * Get the manager of this user
+     */
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Get all employees managed by this user
+     */
+    public function employees()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
+    /**
+     * Get all employees managed by this user recursively
+     */
+    public function allEmployees()
+    {
+        return $this->employees()->with('allEmployees');
     }
 }

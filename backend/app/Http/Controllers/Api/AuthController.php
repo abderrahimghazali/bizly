@@ -135,6 +135,46 @@ class AuthController extends Controller
     }
 
     /**
+     * Create a new user (Admin only)
+     */
+    public function createUser(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'role' => 'required|string|exists:roles,name',
+            'status' => 'sometimes|string|in:active,pending,suspended',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Get the role
+        $role = Role::where('name', $request->role)->first();
+        
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role_id' => $role->id,
+            'status' => $request->get('status', 'active'),
+            'email_verified_at' => now(), // Auto-verify admin-created users
+        ]);
+
+        $user->load('role.permissions');
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => new UserResource($user)
+        ], 201);
+    }
+
+    /**
      * Update a user (Admin only)
      */
     public function updateUser(Request $request, User $user)

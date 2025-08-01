@@ -10,6 +10,7 @@ import {
   IconUsers,
   IconUserCog,
   IconShield,
+  IconAddressBook,
 } from "@tabler/icons-react";
 
 export interface NavItem {
@@ -40,7 +41,7 @@ export function useNavigation() {
       {
         title: "Contacts",
         url: "/contacts",
-        icon: IconUsers,
+        icon: IconAddressBook,
         permissions: ['view_contacts'],
       },
       {
@@ -86,7 +87,7 @@ export function useNavigation() {
     // Add admin-only items
     if (permissions.isAdmin) {
       mainNavItems.push({
-        title: "User Management",
+        title: "Users",
         url: "/users/list",
         icon: IconUserCog,
         roles: ['admin'],
@@ -116,9 +117,9 @@ export function useNavigation() {
     // Add manager-only items
     if (permissions.isAdmin || permissions.isManager) {
       mainNavItems.push({
-        title: "Team Management",
+        title: "Teams",
         url: "/manager/team",
-        icon: IconShield,
+        icon: IconUsers,
         roles: ['admin', 'manager'],
       });
     }

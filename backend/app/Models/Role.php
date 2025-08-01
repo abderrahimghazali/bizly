@@ -41,6 +41,11 @@ class Role extends Model
      */
     public function hasPermission(string $permissionName): bool
     {
+        // Admin role always has all permissions
+        if ($this->name === 'admin') {
+            return true;
+        }
+        
         return $this->permissions()->where('name', $permissionName)->exists();
     }
 
@@ -74,5 +79,17 @@ class Role extends Model
     public function getUserCountAttribute()
     {
         return $this->users()->count();
+    }
+
+    /**
+     * Ensure admin role has all permissions
+     */
+    public static function ensureAdminHasAllPermissions()
+    {
+        $adminRole = self::where('name', 'admin')->first();
+        if ($adminRole) {
+            $allPermissions = Permission::all();
+            $adminRole->syncPermissions($allPermissions->pluck('id')->toArray());
+        }
     }
 }

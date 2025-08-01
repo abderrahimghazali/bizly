@@ -5,6 +5,7 @@ import { AdminOnly } from '@/components/rbac/admin-only';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { IconShield, IconUserPlus, IconSettings, IconAlertCircle } from '@tabler/icons-react';
 import { usersApi, User } from '@/lib/api/users';
 import { UsersDataTable } from '@/components/data/users-data-table';
@@ -118,6 +119,17 @@ export default function UsersListPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Add New User Button */}
+        <div className="flex justify-end">
+          <Button 
+            className="flex items-center space-x-2"
+            onClick={() => window.location.href = '/users/add'}
+          >
+            <IconUserPlus className="h-4 w-4" />
+            <span>Add New User</span>
+          </Button>
         </div>
 
         <Card>

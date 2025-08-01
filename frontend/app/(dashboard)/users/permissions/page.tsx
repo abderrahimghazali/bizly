@@ -45,6 +45,12 @@ export default function PermissionsPage() {
   }, []);
 
   const handlePermissionChange = (roleId: number, permissionId: number, checked: boolean) => {
+    // Don't allow changes to admin role permissions
+    const role = permissionsData?.roles.find(r => r.id === roleId);
+    if (role?.name === 'admin') {
+      return;
+    }
+
     setRolePermissions(prev => ({
       ...prev,
       [roleId]: checked 
@@ -59,10 +65,12 @@ export default function PermissionsPage() {
       
       if (!permissionsData) return;
       
-      // Update permissions for each role
-      const updatePromises = permissionsData.roles.map(role => 
-        rolesApi.updatePermissions(role.id, rolePermissions[role.id] || [])
-      );
+      // Update permissions for each role (exclude admin role)
+      const updatePromises = permissionsData.roles
+        .filter(role => role.name !== 'admin') // Don't update admin permissions
+        .map(role => 
+          rolesApi.updatePermissions(role.id, rolePermissions[role.id] || [])
+        );
       
       await Promise.all(updatePromises);
       toast.success('Permissions updated successfully!');
@@ -165,17 +173,23 @@ export default function PermissionsPage() {
                           <span>{permission.label}</span>
                         </div>
                       </TableCell>
-                      {permissionsData?.roles.map((role) => (
-                        <TableCell key={role.id} className="text-center">
-                          <Checkbox
-                            checked={(rolePermissions[role.id] || []).includes(permission.id)}
-                            onCheckedChange={(checked) => 
-                              handlePermissionChange(role.id, permission.id, !!checked)
-                            }
-                            aria-label={`${role.label} - ${permission.label}`}
-                          />
-                        </TableCell>
-                      ))}
+                      {permissionsData?.roles.map((role) => {
+                        const isAdmin = role.name === 'admin';
+                        const isChecked = isAdmin ? true : (rolePermissions[role.id] || []).includes(permission.id);
+                        
+                        return (
+                          <TableCell key={role.id} className="text-center">
+                            <Checkbox
+                              checked={isChecked}
+                              disabled={isAdmin}
+                              onCheckedChange={(checked) => 
+                                handlePermissionChange(role.id, permission.id, !!checked)
+                              }
+                              aria-label={`${role.label} - ${permission.label}`}
+                            />
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   )) || []}
                 </TableBody>
@@ -191,6 +205,7 @@ export default function PermissionsPage() {
                     <li>• Each row represents a role in your system</li>
                     <li>• Each column represents a specific permission</li>
                     <li>• Check the boxes to grant permissions to roles</li>
+                    <li>• Administrator role has all permissions automatically (cannot be changed)</li>
                     <li>• Click "Save Changes" to apply your updates</li>
                   </ul>
                 </div>
