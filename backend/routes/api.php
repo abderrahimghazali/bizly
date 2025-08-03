@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\DealController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -21,6 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['role:admin,manager,employee'])->group(function () {
         Route::get('/companies', [CompanyController::class, 'index']);
         Route::get('/companies/{company}', [CompanyController::class, 'show']);
+        Route::get('/companies-stats', [CompanyController::class, 'stats']);
+        Route::get('/companies-options', [CompanyController::class, 'options']);
     });
     
     Route::middleware(['permission:create_company'])->group(function () {
@@ -39,6 +42,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['role:admin,manager,employee'])->group(function () {
         Route::get('/contacts', [ContactController::class, 'index']);
         Route::get('/contacts/{contact}', [ContactController::class, 'show']);
+        Route::get('/contacts-stats', [ContactController::class, 'stats']);
+        Route::get('/contacts-options', [ContactController::class, 'options']);
+        Route::get('/companies/{company}/contacts', [ContactController::class, 'byCompany']);
     });
     
     Route::middleware(['permission:create_contact'])->group(function () {
@@ -47,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::middleware(['permission:edit_contact'])->group(function () {
         Route::put('/contacts/{contact}', [ContactController::class, 'update']);
+        Route::post('/contacts/{contact}/set-primary', [ContactController::class, 'setPrimary']);
     });
     
     Route::middleware(['role:admin,manager'])->group(function () {
@@ -74,6 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // CRM routes
     Route::middleware(['role:admin,manager,employee'])->group(function () {
         Route::apiResource('leads', \App\Http\Controllers\Api\LeadController::class);
+        Route::post('leads/{lead}/convert', [\App\Http\Controllers\Api\LeadController::class, 'convert']);
+        Route::apiResource('deals', DealController::class);
+        Route::get('deals-stats', [DealController::class, 'stats']);
     });
     
     // Admin-only routes

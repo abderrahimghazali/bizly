@@ -26,7 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/lib/hooks/useAuth"
-import { UserRoleBadge } from "@/components/rbac/user-role-badge"
+import { UserRoleBadge } from "@/components/users"
 
 export function NavUser() {
   const { isMobile } = useSidebar()

@@ -5,23 +5,28 @@ import { usePermissions } from './usePermissions';
 import {
   IconDashboard,
   IconFileDescription,
-  IconFolder,
   IconSettings,
-  IconUsers,
   IconUserCog,
-  IconShield,
   IconAddressBook,
   IconChartLine,
   IconTargetArrow,
-  IconHandshake,
-  IconCalendarEvent,
+  IconBriefcase,
   IconChartBar,
+  IconBuilding,
+  IconCurrencyDollar,
+  IconReceipt,
+  IconPackage,
+  IconShoppingCart,
+  IconTruckDelivery,
+  IconReportAnalytics,
+  IconClipboardList,
+  IconTemplate,
 } from "@tabler/icons-react";
 
 export interface NavItem {
   title: string;
   url: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   items?: NavItem[];
   permissions?: string[];
   roles?: string[];
@@ -37,23 +42,13 @@ export function useNavigation() {
         url: "/dashboard",
         icon: IconDashboard,
       },
-      {
-        title: "Companies",
-        url: "/companies",
-        icon: IconFolder,
-        permissions: ['view_companies'],
-      },
-      {
-        title: "Contacts",
-        url: "/contacts",
-        icon: IconAddressBook,
-        permissions: ['view_contacts'],
-      },
+      
+      // CRM Section
       {
         title: "CRM",
         url: "/crm/leads",
         icon: IconChartLine,
-        permissions: ['view_companies'], // Using existing permission for now
+        permissions: ['view_companies', 'view_contacts'],
         items: [
           {
             title: "Leads",
@@ -64,23 +59,81 @@ export function useNavigation() {
           {
             title: "Deals",
             url: "/crm/deals",
-            icon: IconHandshake,
+            icon: IconBriefcase,
             permissions: ['view_companies'],
           },
           {
-            title: "Activities",
-            url: "/crm/activities",
-            icon: IconCalendarEvent,
+            title: "Companies",
+            url: "/crm/companies",
+            icon: IconBuilding,
             permissions: ['view_companies'],
           },
           {
-            title: "Reports",
-            url: "/crm/reports",
-            icon: IconChartBar,
+            title: "Contacts",
+            url: "/crm/contacts",
+            icon: IconAddressBook,
+            permissions: ['view_contacts'],
+          },
+        ],
+      },
+
+      // Sales Section (Future - placeholder for now)
+      {
+        title: "Sales",
+        url: "/sales/quotes",
+        icon: IconCurrencyDollar,
+        permissions: ['view_companies'], // Using existing permission
+        items: [
+          {
+            title: "Quotes",
+            url: "/sales/quotes",
+            icon: IconReceipt,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Orders",
+            url: "/sales/orders",
+            icon: IconShoppingCart,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Invoices",
+            url: "/documents/invoices",
+            icon: IconReceipt,
+            permissions: ['view_documents'],
+          },
+        ],
+      },
+
+      // Inventory Section (Future - placeholder for now)
+      {
+        title: "Inventory",
+        url: "/inventory/products",
+        icon: IconPackage,
+        permissions: ['view_companies'], // Using existing permission
+        items: [
+          {
+            title: "Products",
+            url: "/inventory/products",
+            icon: IconPackage,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Stock",
+            url: "/inventory/stock",
+            icon: IconClipboardList,
+            permissions: ['view_companies'],
+          },
+          {
+            title: "Suppliers",
+            url: "/inventory/suppliers",
+            icon: IconTruckDelivery,
             permissions: ['view_companies'],
           },
         ],
       },
+
+      // Documents Section
       {
         title: "Documents",
         url: "/documents",
@@ -100,66 +153,80 @@ export function useNavigation() {
             permissions: ['view_documents'],
           },
           {
-            title: "Invoices",
-            url: "/documents/invoices",
-            icon: IconFileDescription,
-            permissions: ['view_documents'],
+            title: "Templates",
+            url: "/documents/templates",
+            icon: IconTemplate,
+            permissions: ['create_document', 'edit_document'],
           },
           {
             title: "Reports",
             url: "/documents/reports",
-            icon: IconFileDescription,
+            icon: IconReportAnalytics,
             permissions: ['view_documents'],
-          },
-          {
-            title: "Templates",
-            url: "/documents/templates",
-            icon: IconFileDescription,
-            permissions: ['create_document', 'edit_document'],
           },
         ],
       },
     ];
 
-    // Add admin-only items
-    if (permissions.isAdmin) {
+    // Management Section (Admin & Manager)
+    if (permissions.isAdmin || permissions.isManager) {
       mainNavItems.push({
-        title: "Users",
-        url: "/users/list",
+        title: "Management",
+        url: "#", // No direct URL since this is a parent item
         icon: IconUserCog,
-        roles: ['admin'],
+        roles: ['admin', 'manager'],
         items: [
+          // Team management for admin and managers
           {
-            title: "List",
-            url: "/users/list",
-            icon: IconUsers,
-            roles: ['admin'],
+            title: "Team",
+            url: "/management/team/team",
           },
-          {
-            title: "Permissions",
-            url: "/users/permissions",
-            icon: IconShield,
-            roles: ['admin'],
-          },
-          {
-            title: "Roles",
-            url: "/users/roles",
-            icon: IconUserCog,
-            roles: ['admin'],
-          },
+          // User management for admin only
+          ...(permissions.isAdmin ? [
+            {
+              title: "Users",
+              url: "/management/users/list",
+            },
+            {
+              title: "Roles",
+              url: "/management/users/roles",
+            },
+            {
+              title: "Permissions",
+              url: "/management/users/permissions",
+            },
+          ] : []),
         ],
       });
     }
 
-    // Add manager-only items
-    if (permissions.isAdmin || permissions.isManager) {
-      mainNavItems.push({
-        title: "Teams",
-        url: "/manager/team",
-        icon: IconUsers,
-        roles: ['admin', 'manager'],
-      });
-    }
+    // Reports Section (Available to all with proper permissions)
+    mainNavItems.push({
+      title: "Reports",
+      url: "/reports/overview",
+      icon: IconReportAnalytics,
+      permissions: ['view_companies', 'view_documents'],
+      items: [
+        {
+          title: "Overview",
+          url: "/reports/overview",
+          icon: IconChartBar,
+          permissions: ['view_companies'],
+        },
+        {
+          title: "Sales Reports",
+          url: "/reports/sales",
+          icon: IconCurrencyDollar,
+          permissions: ['view_companies'],
+        },
+        {
+          title: "CRM Reports",
+          url: "/crm/reports",
+          icon: IconChartLine,
+          permissions: ['view_companies'],
+        },
+      ],
+    });
 
     const secondaryNavItems: NavItem[] = [
       {

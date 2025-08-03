@@ -6,7 +6,7 @@ export interface Lead {
   email: string;
   phone?: string;
   company?: string;
-  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost' | 'converted';
   source?: string;
   value: number;
   last_contact?: string;
@@ -41,6 +41,35 @@ export interface UpdateLeadData {
   value?: number;
   notes?: string;
   assigned_to?: number;
+}
+
+export interface ConvertLeadData {
+  // Company data
+  company_action: 'create' | 'existing';
+  company_id?: number;
+  company_name?: string;
+  company_industry?: string;
+  company_website?: string;
+  company_phone?: string;
+  company_email?: string;
+  company_address?: string;
+  
+  // Contact data (always create new)
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_position?: string;
+  contact_department?: string;
+  contact_phone?: string;
+  contact_mobile?: string;
+  contact_is_primary?: boolean;
+  
+  // Deal data (optional)
+  create_deal?: boolean;
+  deal_title?: string;
+  deal_amount?: number;
+  deal_probability?: number;
+  deal_expected_close_date?: string;
+  deal_notes?: string;
 }
 
 export const leadsApi = {
@@ -81,6 +110,18 @@ export const leadsApi = {
   // Delete lead
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete(`/leads/${id}`);
+    return response.data;
+  },
+
+  // Convert lead to company, contact, and optionally deal
+  convert: async (id: number, data: ConvertLeadData): Promise<{ 
+    message: string; 
+    company: unknown; 
+    contact: unknown; 
+    deal?: unknown; 
+    lead: Lead 
+  }> => {
+    const response = await apiClient.post(`/leads/${id}/convert`, data);
     return response.data;
   },
 };

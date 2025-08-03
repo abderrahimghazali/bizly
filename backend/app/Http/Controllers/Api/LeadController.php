@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\Company;
+use App\Models\Contact;
+use App\Models\Deal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LeadController extends Controller
 {
@@ -72,7 +77,7 @@ class LeadController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:255',
             'company' => 'nullable|string|max:255',
-            'status' => 'sometimes|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'status' => 'sometimes|in:new,contacted,qualified,proposal,negotiation,won,lost,converted',
             'source' => 'nullable|string|max:255',
             'value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
@@ -163,7 +168,7 @@ class LeadController extends Controller
             'email' => 'sometimes|email|max:255',
             'phone' => 'nullable|string|max:255',
             'company' => 'nullable|string|max:255',
-            'status' => 'sometimes|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'status' => 'sometimes|in:new,contacted,qualified,proposal,negotiation,won,lost,converted',
             'source' => 'nullable|string|max:255',
             'value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
@@ -217,5 +222,145 @@ class LeadController extends Controller
         return response()->json([
             'message' => 'Lead deleted successfully'
         ]);
+    }
+
+    /**
+     * Convert a lead to company, contact, and optionally deal
+     */
+    public function convert(Request $request, Lead $lead)
+    {
+        // Check if lead is already converted
+        if ($lead->status === 'converted') {
+            return response()->json([
+                'message' => 'Lead is already converted'
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            // Company data
+            'company_action' => 'required|in:create,existing',
+            'company_id' => 'required_if:company_action,existing|exists:companies,id',
+            'company_name' => 'required_if:company_action,create|string|max:255',
+            'company_industry' => 'nullable|string|max:255',
+            'company_website' => 'nullable|url|max:255',
+            'company_phone' => 'nullable|string|max:20',
+            'company_email' => 'nullable|email|max:255',
+            'company_address' => 'nullable|string',
+            
+            // Contact data (always create new)
+            'contact_first_name' => 'required|string|max:255',
+            'contact_last_name' => 'required|string|max:255',
+            'contact_position' => 'nullable|string|max:255',
+            'contact_department' => 'nullable|string|max:255',
+            'contact_phone' => 'nullable|string|max:20',
+            'contact_mobile' => 'nullable|string|max:20',
+            'contact_is_primary' => 'boolean',
+            
+            // Deal data (optional)
+            'create_deal' => 'boolean',
+            'deal_title' => 'required_if:create_deal,true|string|max:255',
+            'deal_amount' => 'required_if:create_deal,true|numeric|min:0',
+            'deal_probability' => 'nullable|integer|min:0|max:100',
+            'deal_expected_close_date' => 'required_if:create_deal,true|date|after:today',
+            'deal_notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Step 1: Handle Company (create new or use existing)
+            if ($request->company_action === 'create') {
+                $company = Company::create([
+                    'name' => $request->company_name,
+                    'industry' => $request->company_industry,
+                    'website' => $request->company_website,
+                    'phone' => $request->company_phone ?: $lead->phone,
+                    'email' => $request->company_email ?: $lead->email,
+                    'address' => $request->company_address,
+                    'status' => 'prospect',
+                    'user_id' => Auth::id(),
+                ]);
+            } else {
+                $company = Company::findOrFail($request->company_id);
+            }
+
+            // Step 2: Create Contact
+            $contact = Contact::create([
+                'first_name' => $request->contact_first_name,
+                'last_name' => $request->contact_last_name,
+                'email' => $lead->email,
+                'phone' => $request->contact_phone ?: $lead->phone,
+                'mobile' => $request->contact_mobile,
+                'position' => $request->contact_position,
+                'department' => $request->contact_department,
+                'company_id' => $company->id,
+                'user_id' => Auth::id(),
+                'is_primary' => $request->contact_is_primary ?? false,
+                'notes' => "Converted from lead: {$lead->name}",
+            ]);
+
+            // Set as primary contact if requested
+            if ($request->contact_is_primary) {
+                $contact->setPrimary();
+            }
+
+            $deal = null;
+            // Step 3: Create Deal (if requested)
+            if ($request->create_deal) {
+                $deal = Deal::create([
+                    'title' => $request->deal_title,
+                    'description' => "Converted from lead: {$lead->name}",
+                    'amount' => $request->deal_amount,
+                    'probability' => $request->deal_probability ?? 50,
+                    'stage' => 'qualified',
+                    'expected_close_date' => $request->deal_expected_close_date,
+                    'source' => $lead->source,
+                    'notes' => $request->deal_notes ?: $lead->notes,
+                    'lead_id' => $lead->id,
+                    'company_id' => $company->id,
+                    'contact_id' => $contact->id,
+                    'assigned_to' => $lead->assigned_to,
+                    'created_by' => Auth::id(),
+                ]);
+            }
+
+            // Step 4: Update Lead Status
+            $lead->update([
+                'status' => 'converted',
+                'company_id' => $company->id, // Link to company
+            ]);
+
+            DB::commit();
+
+            // Load relationships for response
+            $company->load(['primaryContact', 'contacts']);
+            $contact->load(['company']);
+            if ($deal) {
+                $deal->load(['company', 'contact', 'assignedUser']);
+            }
+
+            return response()->json([
+                'message' => 'Lead converted successfully',
+                'company' => $company,
+                'contact' => $contact,
+                'deal' => $deal,
+                'lead' => $lead->fresh(['assignedUser']),
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return response()->json([
+                'message' => 'Lead conversion failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -63,8 +63,8 @@ export function SiteHeader() {
             const pageNames: Record<string, string> = {
               'leads': 'Leads',
               'deals': 'Deals', 
-              'activities': 'Activities',
-              'reports': 'Reports'
+              'companies': 'Companies',
+              'contacts': 'Contacts'
             };
             
             return (
