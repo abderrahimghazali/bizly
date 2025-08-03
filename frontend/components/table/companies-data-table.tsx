@@ -66,13 +66,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { CompanyDetailsSheet } from '@/components/crm/company-details-sheet'
+import { Company as ApiCompany } from '@/lib/api/companies'
 
-// Company interface
+// Company interface for the data table
 export interface Company {
   id: number
   name: string
   industry: string
-  status: 'active' | 'inactive' | 'pending'
+  status: 'active' | 'inactive' | 'prospect'
   email?: string
   phone?: string
   website?: string
@@ -80,6 +82,14 @@ export interface Company {
   contact_person?: string
   created_at?: string
   updated_at?: string
+  // Add primary contact
+  primary_contact?: {
+    id: number
+    full_name: string
+    email?: string
+    phone?: string
+    position?: string
+  }
 }
 
 interface CompaniesDataTableProps {
@@ -115,6 +125,8 @@ function SortableHeader({
 export function CompaniesDataTable({ data: initialData, onDataChange }: CompaniesDataTableProps) {
   const [data, setData] = React.useState(() => initialData)
   const router = useRouter()
+  const [selectedCompanyId, setSelectedCompanyId] = React.useState<number | null>(null)
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false)
   
   // Update internal state when parent data changes (for filtering)
   React.useEffect(() => {
@@ -135,6 +147,11 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
       toast.error('Failed to delete company')
     }
   }, [data, onDataChange])
+
+  const handleViewDetails = React.useCallback((companyId: number) => {
+    setSelectedCompanyId(companyId)
+    setIsSheetOpen(true)
+  }, [])
 
   const columns: ColumnDef<Company>[] = React.useMemo(() => [
     {
@@ -195,6 +212,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
             variant={
               status === 'active' ? 'default' : 
               status === 'inactive' ? 'destructive' : 
+              status === 'prospect' ? 'secondary' : 
               'secondary'
             }
           >
@@ -214,11 +232,17 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
         </SortableHeader>
       ),
       cell: ({ row }) => {
-        const contactPerson = row.getValue("contact_person") as string
+        const company = row.original
+        const contactPerson = company.contact_person || company.primary_contact?.full_name
         return contactPerson ? (
           <div className="flex items-center space-x-2">
             <IconUser className="h-4 w-4 text-muted-foreground" />
-            <span>{contactPerson}</span>
+            <div>
+              <div className="font-medium text-sm">{contactPerson}</div>
+              {company.primary_contact?.position && (
+                <div className="text-xs text-muted-foreground">{company.primary_contact.position}</div>
+              )}
+            </div>
           </div>
         ) : (
           <span className="text-muted-foreground">—</span>
@@ -269,7 +293,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => router.push(`/crm/companies/${company.id}`)}
+                onClick={() => handleViewDetails(company.id)}
               >
                 <IconEye className="mr-2 h-4 w-4" />
                 View details
@@ -314,7 +338,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
         )
       },
     },
-  ], [handleCompanyDelete, router])
+  ], [handleCompanyDelete, handleViewDetails, router])
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -464,6 +488,28 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
           </Button>
         </div>
       </div>
+
+      <CompanyDetailsSheet
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        companyId={selectedCompanyId}
+        onCompanyUpdate={(updatedCompany: ApiCompany) => {
+          const updatedData = data.map(company => 
+            company.id === updatedCompany.id ? {
+              ...company,
+              name: updatedCompany.name,
+              industry: updatedCompany.industry || '',
+              status: updatedCompany.status,
+              email: updatedCompany.email,
+              phone: updatedCompany.phone,
+              website: updatedCompany.website,
+              address: updatedCompany.address,
+            } : company
+          )
+          setData(updatedData)
+          onDataChange?.(updatedData)
+        }}
+      />
     </div>
   )
 }

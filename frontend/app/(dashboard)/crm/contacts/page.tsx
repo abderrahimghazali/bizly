@@ -294,6 +294,7 @@ export default function ContactsPage() {
           <ContactsDataTable 
             data={contacts}
             onDataChange={setContacts}
+            companies={companies}
           />
         )}
       </PermissionWrapper>

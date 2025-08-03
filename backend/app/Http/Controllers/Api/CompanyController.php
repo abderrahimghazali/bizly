@@ -178,8 +178,7 @@ class CompanyController extends Controller
      */
     public function options()
     {
-        $companies = Company::active()
-            ->select('id', 'name', 'industry')
+        $companies = Company::select('id', 'name', 'industry')
             ->orderBy('name')
             ->get();
 

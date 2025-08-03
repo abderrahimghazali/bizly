@@ -59,6 +59,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Contact } from "@/lib/api/contacts"
+import { ContactDetailsSheet } from "@/components/crm/contact-details-sheet"
+import { CompanyOption } from "@/lib/api/companies"
 
 function SortableHeader({ column, children }: { column: { toggleSorting: (ascending?: boolean) => void; getIsSorted: () => string | false }; children: React.ReactNode }) {
   return (
@@ -85,12 +87,15 @@ interface ContactsDataTableProps {
   data: Contact[]
   onDataChange: (data: Contact[]) => void
   onEditContact?: (contact: Contact) => void
+  companies?: CompanyOption[]
 }
 
-export function ContactsDataTable({ data, onDataChange, onEditContact }: ContactsDataTableProps) {
+export function ContactsDataTable({ data, onDataChange, onEditContact, companies = [] }: ContactsDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [selectedContactId, setSelectedContactId] = React.useState<number | null>(null)
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -112,6 +117,11 @@ export function ContactsDataTable({ data, onDataChange, onEditContact }: Contact
       toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete contact');
     }
   };
+
+  const handleViewDetails = React.useCallback((contactId: number) => {
+    setSelectedContactId(contactId)
+    setIsSheetOpen(true)
+  }, [])
 
   const columns: ColumnDef<Contact>[] = React.useMemo(
     () => [
@@ -216,7 +226,7 @@ export function ContactsDataTable({ data, onDataChange, onEditContact }: Contact
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleViewDetails(contact.id)}>
                   <IconEye className="mr-2 h-4 w-4" />
                   View details
                 </DropdownMenuItem>
@@ -268,7 +278,7 @@ export function ContactsDataTable({ data, onDataChange, onEditContact }: Contact
         },
       },
     ],
-    [handleContactDelete, onEditContact]
+    [handleContactDelete, handleViewDetails, onEditContact]
   )
 
   const table = useReactTable({
@@ -374,6 +384,19 @@ export function ContactsDataTable({ data, onDataChange, onEditContact }: Contact
           </Button>
         </div>
       </div>
+
+      <ContactDetailsSheet
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        contactId={selectedContactId}
+        companies={companies}
+        onContactUpdate={(updatedContact) => {
+          const updatedData = data.map(contact => 
+            contact.id === updatedContact.id ? updatedContact : contact
+          )
+          onDataChange(updatedData)
+        }}
+      />
     </div>
   )
 } 

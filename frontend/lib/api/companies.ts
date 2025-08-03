@@ -164,7 +164,7 @@ export const companiesApi = {
     return response.data;
   },
 
-  getById: async (id: number): Promise<{ data: Company }> => {
+  getById: async (id: number): Promise<Company> => {
     const response = await apiClient.get(`/companies/${id}`);
     return response.data;
   },

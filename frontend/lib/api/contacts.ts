@@ -81,7 +81,7 @@ export const contactsApi = {
     return response.data;
   },
 
-  getById: async (id: number): Promise<{ data: Contact }> => {
+  getById: async (id: number): Promise<Contact> => {
     const response = await apiClient.get(`/contacts/${id}`);
     return response.data;
   },

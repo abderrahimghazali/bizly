@@ -349,21 +349,21 @@ export function DealDetailsSheet({ open, onOpenChange, dealId, assignableUsers, 
                           <Input
                             id="edit-expected-close"
                             type="date"
-                            value={editData.expected_close_date || ''}
+                            value={editData.expected_close_date ? new Date(editData.expected_close_date).toISOString().split('T')[0] : ''}
                             onChange={(e) => setEditData({...editData, expected_close_date: e.target.value})}
                           />
                         </div>
                         <div>
                           <Label htmlFor="edit-assigned-to">Assigned To</Label>
                           <Select 
-                            value={editData.assigned_to?.toString() || ''} 
-                            onValueChange={(value) => setEditData({...editData, assigned_to: value ? parseInt(value) : undefined})}
+                            value={editData.assigned_to?.toString() || 'unassigned'} 
+                            onValueChange={(value) => setEditData({...editData, assigned_to: value === 'unassigned' ? undefined : parseInt(value)})}
                           >
                             <SelectTrigger id="edit-assigned-to">
                               <SelectValue placeholder="Select assignee" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Unassigned</SelectItem>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
                               {assignableUsers.map((user) => (
                                 <SelectItem key={user.id} value={user.id.toString()}>
                                   {user.name} ({user.role})
