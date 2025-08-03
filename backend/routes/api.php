@@ -84,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('leads/{lead}/convert', [\App\Http\Controllers\Api\LeadController::class, 'convert']);
         Route::apiResource('deals', DealController::class);
         Route::get('deals-stats', [DealController::class, 'stats']);
+        Route::get('deals-assignable-users', [DealController::class, 'getAssignableUsers']);
     });
     
     // Admin-only routes

@@ -1,5 +1,17 @@
 import { apiClient } from './client';
 
+export interface Activity {
+  id: number;
+  type: 'email' | 'call' | 'meeting' | 'note' | 'status_change' | 'created' | 'updated' | 'assigned';
+  subject: string;
+  description?: string;
+  activity_date: string;
+  user: {
+    id: number;
+    name: string;
+  };
+}
+
 export interface Lead {
   id: number;
   name: string;
@@ -17,6 +29,7 @@ export interface Lead {
   };
   created_at: string;
   updated_at: string;
+  activities?: Activity[];
 }
 
 export interface CreateLeadData {

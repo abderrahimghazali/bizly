@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useCallback } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -68,6 +69,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { Lead, leadsApi } from "@/lib/api/leads"
+import { useRouter } from "next/navigation"
 
 function SortableHeader({ column, children }: { column: { toggleSorting: (ascending?: boolean) => void; getIsSorted: () => string | false }; children: React.ReactNode }) {
   return (
@@ -95,9 +97,11 @@ interface LeadsDataTableProps {
   onDataChange: (data: Lead[]) => void
   onConvertLead?: (lead: Lead) => void
   onEditLead?: (lead: Lead) => void
+  onViewDetails?: (lead: Lead) => void
 }
 
-export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }: LeadsDataTableProps) {
+export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, onViewDetails }: LeadsDataTableProps) {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -147,7 +151,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }
     });
   };
 
-  const handleLeadDelete = async (leadId: number, leadName: string) => {
+  const handleLeadDelete = useCallback(async (leadId: number, leadName: string) => {
     try {
       await leadsApi.delete(leadId);
       const updatedData = data.filter(lead => lead.id !== leadId);
@@ -156,7 +160,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }
     } catch (error: unknown) {
       toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete lead');
     }
-  };
+  }, [data, onDataChange]);
 
 
 
@@ -251,6 +255,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }
       },
       {
         id: "actions",
+        header: "Action",
         enableHiding: false,
         cell: ({ row }) => {
           const lead = row.original;
@@ -264,8 +269,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onViewDetails?.(lead)}>
                   <IconEye className="mr-2 h-4 w-4" />
                   View details
                 </DropdownMenuItem>
@@ -323,7 +327,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead }
         },
       },
     ],
-    [handleLeadDelete, onConvertLead, onEditLead]
+    [handleLeadDelete, onConvertLead, onEditLead, onViewDetails, router]
   )
 
   const table = useReactTable({

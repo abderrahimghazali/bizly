@@ -124,6 +124,13 @@ export const dealSources = [
   'Other'
 ] as const;
 
+export interface AssignableUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export const dealsApi = {
   async getAll(params?: {
     stage?: string;
@@ -159,6 +166,11 @@ export const dealsApi = {
 
   async getStats(): Promise<{ success: boolean; stats: DealStats }> {
     const response = await apiClient.get('/deals-stats');
+    return response.data;
+  },
+
+  async getAssignableUsers(): Promise<{ success: boolean; users: AssignableUser[] }> {
+    const response = await apiClient.get('/deals-assignable-users');
     return response.data;
   },
 };

@@ -33,10 +33,11 @@ import {
   IconAlertTriangle,
 } from '@tabler/icons-react';
 import { toast } from 'sonner';
-import { Deal, dealsApi, CreateDealData, dealStages, dealSources, DealStats } from '@/lib/api/deals';
+import { Deal, dealsApi, CreateDealData, dealStages, dealSources, DealStats, AssignableUser } from '@/lib/api/deals';
 import { companiesApi, CompanyOption } from '@/lib/api/companies';
 import { contactsApi, ContactOption } from '@/lib/api/contacts';
 import { DealsDataTable } from '@/components/table';
+import { DealDetailsSheet } from '@/components/crm';
 
 export default function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -52,7 +53,12 @@ export default function DealsPage() {
   // CRM data for dropdowns
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
+  
+  // Deal details sheet state
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [dealToView, setDealToView] = useState<Deal | null>(null);
   
   // Form data for new deal
   const [formData, setFormData] = useState<CreateDealData>({
@@ -73,6 +79,7 @@ export default function DealsPage() {
     fetchDeals();
     fetchStats();
     fetchCompanies();
+    fetchAssignableUsers();
   }, []);
 
   // Fetch contacts when company is selected
@@ -125,6 +132,59 @@ export default function DealsPage() {
       console.error('Failed to fetch contacts:', error);
       toast.error('Failed to load contacts');
     }
+  };
+
+  const fetchAssignableUsers = async () => {
+    try {
+      const response = await dealsApi.getAssignableUsers();
+      setAssignableUsers(response.users);
+    } catch (error) {
+      console.error('Failed to fetch assignable users:', error);
+      toast.error('Failed to load assignable users');
+    }
+  };
+
+  const handleAssignDeal = async (dealId: number, userId: number | null) => {
+    try {
+      await dealsApi.update(dealId, { assigned_to: userId });
+      // Update local state
+      setDeals(prev => prev.map(deal => 
+        deal.id === dealId 
+          ? { 
+              ...deal, 
+              assigned_to: userId,
+              assigned_user: userId ? assignableUsers.find(u => u.id === userId) : undefined 
+            }
+          : deal
+      ));
+      setFilteredDeals(prev => prev.map(deal => 
+        deal.id === dealId 
+          ? { 
+              ...deal, 
+              assigned_to: userId,
+              assigned_user: userId ? assignableUsers.find(u => u.id === userId) : undefined 
+            }
+          : deal
+      ));
+      toast.success('Deal assignment updated successfully');
+    } catch (error) {
+      console.error('Failed to assign deal:', error);
+      toast.error('Failed to update deal assignment');
+    }
+  };
+
+  const handleViewDetails = (deal: Deal) => {
+    setDealToView(deal);
+    setDetailsSheetOpen(true);
+  };
+
+  const handleDealUpdate = (updatedDeal: Deal) => {
+    setDeals(prev => prev.map(deal => 
+      deal.id === updatedDeal.id ? updatedDeal : deal
+    ));
+    setFilteredDeals(prev => prev.map(deal => 
+      deal.id === updatedDeal.id ? updatedDeal : deal
+    ));
   };
 
   // Filter deals based on search and filters
@@ -532,16 +592,28 @@ export default function DealsPage() {
             </div>
           ) : (
             <DealsDataTable 
-              data={filteredDeals} 
+              data={filteredDeals}
+              assignableUsers={assignableUsers}
               onDataChange={(updatedData) => {
                 setDeals(updatedData);
                 setFilteredDeals(updatedData);
                 fetchStats(); // Refresh stats when data changes
-              }} 
+              }}
+              onAssignDeal={handleAssignDeal}
+              onViewDetails={handleViewDetails}
             />
           )}
         </CardContent>
       </Card>
+
+      {/* Deal Details Sheet */}
+      <DealDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        dealId={dealToView?.id || null}
+        assignableUsers={assignableUsers}
+        onDealUpdate={handleDealUpdate}
+      />
     </div>
   );
 }

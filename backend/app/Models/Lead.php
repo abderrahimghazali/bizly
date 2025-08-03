@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Lead extends Model
 {
@@ -69,6 +70,14 @@ class Lead extends Model
     public function deals(): HasMany
     {
         return $this->hasMany(Deal::class);
+    }
+
+    /**
+     * Get all activities for this lead
+     */
+    public function activities(): MorphMany
+    {
+        return $this->morphMany(Activity::class, 'activityable')->orderBy('activity_date', 'desc');
     }
 
     /**

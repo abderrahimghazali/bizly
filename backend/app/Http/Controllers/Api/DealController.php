@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deal;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -253,6 +254,43 @@ class DealController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch deal statistics',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get assignable users for deals (CRM managers and employees)
+     */
+    public function getAssignableUsers(): JsonResponse
+    {
+        try {
+            $users = User::with('role')
+                ->whereHas('role', function ($query) {
+                    $query->whereIn('name', ['admin', 'manager', 'employee']);
+                })
+                ->where('status', 'active')
+                ->select('id', 'name', 'email', 'role_id')
+                ->orderBy('name')
+                ->get();
+
+            $formattedUsers = $users->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role ? $user->role->label : 'Unknown',
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'users' => $formattedUsers,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch assignable users: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch assignable users',
             ], 500);
         }
     }

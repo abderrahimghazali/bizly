@@ -67,8 +67,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { Deal, dealsApi, dealStages } from "@/lib/api/deals"
+import { Deal, dealsApi, dealStages, AssignableUser } from "@/lib/api/deals"
 import { useRouter } from "next/navigation"
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 // Sortable header component
 function SortableHeader({ column, children }: { column: { toggleSorting: (ascending?: boolean) => void; getIsSorted: () => string | false }; children: React.ReactNode }) {
@@ -120,10 +127,13 @@ function StageBadge({ stage }: { stage: Deal['stage'] }) {
 
 interface DealsDataTableProps {
   data: Deal[]
+  assignableUsers: AssignableUser[]
   onDataChange?: (updatedData: Deal[]) => void
+  onAssignDeal?: (dealId: number, userId: number | null) => void
+  onViewDetails?: (deal: Deal) => void
 }
 
-export function DealsDataTable({ data: initialData, onDataChange }: DealsDataTableProps) {
+export function DealsDataTable({ data: initialData, assignableUsers, onDataChange, onAssignDeal, onViewDetails }: DealsDataTableProps) {
   const [data, setData] = React.useState(() => initialData)
   const router = useRouter()
 
@@ -262,13 +272,51 @@ export function DealsDataTable({ data: initialData, onDataChange }: DealsDataTab
       header: "Assigned To",
       cell: ({ row }) => {
         const deal = row.original
-        return deal.assigned_user ? (
-          <div className="flex items-center">
-            <IconUser className="w-4 h-4 mr-2 text-muted-foreground" />
-            <span>{deal.assigned_user.name}</span>
-          </div>
-        ) : (
-          <span className="text-muted-foreground">Unassigned</span>
+        const currentUserId = deal.assigned_user?.id?.toString() || "unassigned"
+        
+        return (
+          <Select
+            value={currentUserId}
+            onValueChange={(userId) => {
+              if (onAssignDeal) {
+                // Handle unassigned case or assigned case
+                const assignedUserId = userId === "unassigned" ? null : parseInt(userId)
+                onAssignDeal(deal.id, assignedUserId)
+              }
+            }}
+          >
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="Unassigned">
+                {deal.assigned_user ? (
+                  <div className="flex items-center">
+                    <IconUser className="w-3 h-3 mr-1 text-muted-foreground" />
+                    <span className="truncate">{deal.assigned_user.name}</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Unassigned</span>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unassigned">
+                <div className="flex items-center">
+                  <IconUser className="w-3 h-3 mr-2 text-muted-foreground" />
+                  Unassigned
+                </div>
+              </SelectItem>
+              {assignableUsers.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <IconUser className="w-3 h-3 mr-2 text-muted-foreground" />
+                      <span>{user.name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground ml-2">{user.role}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )
       },
     },
@@ -302,7 +350,7 @@ export function DealsDataTable({ data: initialData, onDataChange }: DealsDataTab
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
               <DropdownMenuItem
-                onClick={() => router.push(`/crm/deals/${row.original.id}/view`)}
+                onClick={() => onViewDetails?.(row.original)}
               >
                 <IconEye className="mr-2 h-4 w-4" />
                 View

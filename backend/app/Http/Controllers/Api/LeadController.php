@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Deal;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -106,6 +107,17 @@ class LeadController extends Controller
 
         $lead->load('assignedUser');
 
+        // Create activity for lead creation
+        Activity::create([
+            'type' => 'created',
+            'subject' => 'Lead Created',
+            'description' => "Lead '{$lead->name}' was created",
+            'activityable_type' => Lead::class,
+            'activityable_id' => $lead->id,
+            'user_id' => Auth::id(),
+            'activity_date' => now(),
+        ]);
+
         return response()->json([
             'message' => 'Lead created successfully',
             'lead' => [
@@ -134,7 +146,7 @@ class LeadController extends Controller
      */
     public function show(Lead $lead)
     {
-        $lead->load('assignedUser');
+        $lead->load(['assignedUser', 'activities.user']);
 
         return response()->json([
             'lead' => [
@@ -154,6 +166,19 @@ class LeadController extends Controller
                 ] : null,
                 'created_at' => $lead->created_at->format('Y-m-d'),
                 'updated_at' => $lead->updated_at->format('Y-m-d H:i:s'),
+                'activities' => $lead->activities->map(function($activity) {
+                    return [
+                        'id' => $activity->id,
+                        'type' => $activity->type,
+                        'subject' => $activity->subject,
+                        'description' => $activity->description,
+                        'activity_date' => $activity->activity_date->format('Y-m-d H:i:s'),
+                        'user' => [
+                            'id' => $activity->user->id,
+                            'name' => $activity->user->name,
+                        ],
+                    ];
+                }),
             ]
         ]);
     }
@@ -182,10 +207,41 @@ class LeadController extends Controller
             ], 422);
         }
 
+        $originalStatus = $lead->status;
+        $originalAssignedTo = $lead->assigned_to;
+
         $lead->update($request->only([
             'name', 'email', 'phone', 'company', 'status', 
             'source', 'value', 'notes', 'assigned_to'
         ]));
+
+        // Create activities for changes
+        if ($request->has('status') && $originalStatus !== $lead->status) {
+            Activity::create([
+                'type' => 'status_change',
+                'subject' => 'Status Changed',
+                'description' => "Status changed from '{$originalStatus}' to '{$lead->status}'",
+                'activityable_type' => Lead::class,
+                'activityable_id' => $lead->id,
+                'user_id' => Auth::id(),
+                'activity_date' => now(),
+            ]);
+        }
+
+        if ($request->has('assigned_to') && $originalAssignedTo !== $lead->assigned_to) {
+            $newAssignee = $lead->assigned_to ? \App\Models\User::find($lead->assigned_to)->name : 'Unassigned';
+            $oldAssignee = $originalAssignedTo ? \App\Models\User::find($originalAssignedTo)->name : 'Unassigned';
+            
+            Activity::create([
+                'type' => 'assigned',
+                'subject' => 'Assignment Changed',
+                'description' => "Lead reassigned from '{$oldAssignee}' to '{$newAssignee}'",
+                'activityable_type' => Lead::class,
+                'activityable_id' => $lead->id,
+                'user_id' => Auth::id(),
+                'activity_date' => now(),
+            ]);
+        }
 
         $lead->load('assignedUser');
 

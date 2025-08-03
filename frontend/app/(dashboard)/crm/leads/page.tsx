@@ -34,7 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Lead, leadsApi, CreateLeadData } from '@/lib/api/leads';
 import { LeadsDataTable } from '@/components/table';
-import { LeadConversionModal } from '@/components/crm';
+import { LeadConversionModal, LeadDetailsSheet } from '@/components/crm';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -53,6 +53,10 @@ export default function LeadsPage() {
   // Edit lead state
   const [isEditMode, setIsEditMode] = useState(false);
   const [leadToEdit, setLeadToEdit] = useState<Lead | null>(null);
+  
+  // View details state
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [leadToView, setLeadToView] = useState<Lead | null>(null);
   
   // Form data for new lead
   const [formData, setFormData] = useState<CreateLeadData>({
@@ -189,6 +193,20 @@ export default function LeadsPage() {
     setConversionModalOpen(false);
     setLeadToConvert(null);
     fetchLeads(); // Refresh leads to show updated status
+  };
+
+  const handleViewDetails = (lead: Lead) => {
+    setLeadToView(lead);
+    setDetailsSheetOpen(true);
+  };
+
+  const handleLeadUpdate = (updatedLead: Lead) => {
+    setLeads(prev => prev.map(lead => 
+      lead.id === updatedLead.id ? updatedLead : lead
+    ));
+    setFilteredLeads(prev => prev.map(lead => 
+      lead.id === updatedLead.id ? updatedLead : lead
+    ));
   };
 
   // Calculate stats
@@ -490,6 +508,7 @@ export default function LeadsPage() {
               }}
               onConvertLead={handleConvertLead}
               onEditLead={handleEditLead}
+              onViewDetails={handleViewDetails}
             />
           )}
         </CardContent>
@@ -501,6 +520,14 @@ export default function LeadsPage() {
         onOpenChange={setConversionModalOpen}
         lead={leadToConvert}
         onConversionComplete={handleConversionComplete}
+      />
+
+      {/* Lead Details Sheet */}
+      <LeadDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        leadId={leadToView?.id || null}
+        onLeadUpdate={handleLeadUpdate}
       />
     </div>
   );
