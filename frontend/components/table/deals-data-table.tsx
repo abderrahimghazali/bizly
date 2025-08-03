@@ -125,6 +125,20 @@ function StageBadge({ stage }: { stage: Deal['stage'] }) {
   )
 }
 
+// Source label helper function
+function getSourceLabel(source: string) {
+  const sourceLabels: Record<string, string> = {
+    website: 'Website',
+    referral: 'Referral',
+    social_media: 'Social Media',
+    email_campaign: 'Email Campaign',
+    cold_call: 'Cold Call',
+    trade_show: 'Trade Show',
+    other: 'Other',
+  };
+  return sourceLabels[source] || source;
+}
+
 interface DealsDataTableProps {
   data: Deal[]
   assignableUsers: AssignableUser[]
@@ -325,11 +339,14 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
       header: "Source",
       cell: ({ row }) => {
         const source = row.original.source
-        return source ? (
-          <Badge variant="outline">{source}</Badge>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )
+        if (!source) {
+          return <Badge variant="secondary">N/A</Badge>;
+        }
+        return (
+          <Badge variant="default" className="bg-gray-100 text-gray-800 hover:bg-gray-200">
+            {getSourceLabel(source)}
+          </Badge>
+        );
       },
     },
     {

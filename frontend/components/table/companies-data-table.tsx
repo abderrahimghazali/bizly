@@ -42,6 +42,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
@@ -372,31 +373,41 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
+        <div className="ml-auto">
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" size="sm">
               <IconLayoutColumns className="mr-2 h-4 w-4" />
-              Columns
+              View
               <IconChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-[150px]">
+            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             {table
               .getAllColumns()
-              .filter((column) => column.getCanHide())
+              .filter(
+                (column) =>
+                  typeof column.accessorFn !== "undefined" && column.getCanHide()
+              )
               .map((column) => {
                 return (
-                  <DropdownMenuItem
+                  <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
-                    onClick={() => column.toggleVisibility(!column.getIsVisible())}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
-                    {column.getIsVisible() ? "✓" : ""} {column.id}
-                  </DropdownMenuItem>
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
                 )
               })}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

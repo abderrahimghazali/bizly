@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Lead, leadsApi, UpdateLeadData } from '@/lib/api/leads';
+import { AssignableUser, dealsApi } from '@/lib/api/deals';
 import { ActivityTimeline } from './activity-timeline';
 import {
   Sheet,
@@ -50,10 +51,22 @@ interface LeadDetailsSheetProps {
 
 export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: LeadDetailsSheetProps) {
   const [lead, setLead] = useState<Lead | null>(null);
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<UpdateLeadData>({});
   const [saving, setSaving] = useState(false);
+
+  const fetchAssignableUsers = useCallback(async () => {
+    try {
+      const response = await dealsApi.getAssignableUsers();
+      if (response.success) {
+        setAssignableUsers(response.users);
+      }
+    } catch (error) {
+      console.error('Failed to fetch assignable users:', error);
+    }
+  }, []);
 
   const fetchLeadDetails = useCallback(async () => {
     if (!leadId) return;
@@ -71,6 +84,7 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
         source: response.lead.source,
         value: response.lead.value,
         notes: response.lead.notes,
+        assigned_to: response.lead.assigned_to?.id,
       });
     } catch (error) {
       console.error('Failed to fetch lead details:', error);
@@ -84,8 +98,9 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
   React.useEffect(() => {
     if (open && leadId) {
       fetchLeadDetails();
+      fetchAssignableUsers();
     }
-  }, [open, leadId, fetchLeadDetails]);
+  }, [open, leadId, fetchLeadDetails, fetchAssignableUsers]);
 
   const handleSave = async () => {
     if (!lead) return;
@@ -116,6 +131,7 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
         source: lead.source,
         value: lead.value,
         notes: lead.notes,
+        assigned_to: lead.assigned_to?.id,
       });
     }
     setIsEditing(false);
@@ -399,6 +415,33 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
                               <SelectItem value="cold_call">Cold Call</SelectItem>
                               <SelectItem value="trade_show">Trade Show</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-assigned-to">Assigned To</Label>
+                          <Select 
+                            value={editData.assigned_to?.toString() || 'unassigned'} 
+                            onValueChange={(value) => setEditData({...editData, assigned_to: value === 'unassigned' ? undefined : parseInt(value)})}
+                          >
+                            <SelectTrigger id="edit-assigned-to">
+                              <SelectValue placeholder="Select assignee">
+                                {editData.assigned_to ? 
+                                  assignableUsers.find(u => u.id === editData.assigned_to)?.name || 'Unknown User'
+                                  : 'Unassigned'
+                                }
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
+                              {assignableUsers.map((user) => (
+                                <SelectItem key={user.id} value={user.id.toString()}>
+                                  <div className="flex items-center justify-between w-full gap-2">
+                                    <span>{user.name}</span>
+                                    <span className="text-xs text-muted-foreground">{user.role}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>

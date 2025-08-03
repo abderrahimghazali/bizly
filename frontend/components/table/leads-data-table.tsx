@@ -96,11 +96,10 @@ interface LeadsDataTableProps {
   data: Lead[]
   onDataChange: (data: Lead[]) => void
   onConvertLead?: (lead: Lead) => void
-  onEditLead?: (lead: Lead) => void
   onViewDetails?: (lead: Lead) => void
 }
 
-export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, onViewDetails }: LeadsDataTableProps) {
+export function LeadsDataTable({ data, onDataChange, onConvertLead, onViewDetails }: LeadsDataTableProps) {
   const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -133,6 +132,19 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, 
       case 'converted': return <IconArrowRight className="h-3 w-3" />;
       default: return <IconClock className="h-3 w-3" />;
     }
+  };
+
+  const getSourceLabel = (source: string) => {
+    const sourceLabels: Record<string, string> = {
+      website: 'Website',
+      referral: 'Referral',
+      social_media: 'Social Media',
+      email_campaign: 'Email Campaign',
+      cold_call: 'Cold Call',
+      trade_show: 'Trade Show',
+      other: 'Other',
+    };
+    return sourceLabels[source] || source;
   };
 
   const formatCurrency = (amount: number) => {
@@ -225,7 +237,14 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, 
         header: "Source",
         cell: ({ row }) => {
           const lead = row.original;
-          return <span className="text-sm">{lead.source || 'N/A'}</span>;
+          if (!lead.source) {
+            return <Badge variant="secondary">N/A</Badge>;
+          }
+          return (
+            <Badge variant="default" className="bg-gray-100 text-gray-800 hover:bg-gray-200">
+              {getSourceLabel(lead.source)}
+            </Badge>
+          );
         },
       },
       {
@@ -272,10 +291,6 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, 
                 <DropdownMenuItem onClick={() => onViewDetails?.(lead)}>
                   <IconEye className="mr-2 h-4 w-4" />
                   View details
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEditLead?.(lead)}>
-                  <IconEdit className="mr-2 h-4 w-4" />
-                  Edit lead
                 </DropdownMenuItem>
                 {lead.status === 'qualified' && (
                   <DropdownMenuItem onClick={() => onConvertLead?.(lead)}>
@@ -327,7 +342,7 @@ export function LeadsDataTable({ data, onDataChange, onConvertLead, onEditLead, 
         },
       },
     ],
-    [handleLeadDelete, onConvertLead, onEditLead, onViewDetails, router]
+    [handleLeadDelete, onConvertLead, onViewDetails, router]
   )
 
   const table = useReactTable({

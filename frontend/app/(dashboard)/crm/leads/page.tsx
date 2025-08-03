@@ -50,9 +50,7 @@ export default function LeadsPage() {
   const [conversionModalOpen, setConversionModalOpen] = useState(false);
   const [leadToConvert, setLeadToConvert] = useState<Lead | null>(null);
   
-  // Edit lead state
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [leadToEdit, setLeadToEdit] = useState<Lead | null>(null);
+
   
   // View details state
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -125,20 +123,10 @@ export default function LeadsPage() {
     setSubmitting(true);
 
     try {
-      if (isEditMode && leadToEdit) {
-        const response = await leadsApi.update(leadToEdit.id, formData);
-        if (response.lead) {
-          setLeads(prev => prev.map(lead => 
-            lead.id === leadToEdit.id ? response.lead : lead
-          ));
-          toast.success('Lead updated successfully!');
-        }
-      } else {
-        const response = await leadsApi.create(formData);
-        if (response.lead) {
-          setLeads(prev => [response.lead, ...prev]);
-          toast.success('Lead created successfully!');
-        }
+      const response = await leadsApi.create(formData);
+      if (response.lead) {
+        setLeads(prev => [response.lead, ...prev]);
+        toast.success('Lead created successfully!');
       }
       
       // Reset form
@@ -154,8 +142,6 @@ export default function LeadsPage() {
       });
       
       setSheetOpen(false);
-      setIsEditMode(false);
-      setLeadToEdit(null);
     } catch (error: unknown) {
       console.error('Failed to save lead:', error);
       toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to save lead');
@@ -168,21 +154,7 @@ export default function LeadsPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleEditLead = (lead: Lead) => {
-    setLeadToEdit(lead);
-    setIsEditMode(true);
-    setFormData({
-      name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      company: lead.company,
-      status: lead.status,
-      source: lead.source,
-      value: lead.value,
-      notes: lead.notes,
-    });
-    setSheetOpen(true);
-  };
+
 
   const handleConvertLead = (lead: Lead) => {
     setLeadToConvert(lead);
@@ -236,8 +208,6 @@ export default function LeadsPage() {
         <Sheet open={sheetOpen} onOpenChange={(open) => {
           setSheetOpen(open);
           if (!open) {
-            setIsEditMode(false);
-            setLeadToEdit(null);
             // Reset form when closing
             setFormData({
               name: '',
@@ -259,9 +229,9 @@ export default function LeadsPage() {
           </SheetTrigger>
           <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
             <SheetHeader className="px-6 py-6">
-              <SheetTitle>{isEditMode ? 'Edit Lead' : 'Create New Lead'}</SheetTitle>
+              <SheetTitle>Create New Lead</SheetTitle>
               <SheetDescription>
-                {isEditMode ? 'Update lead information.' : 'Add a new lead to your sales pipeline'}
+                Add a new lead to your sales pipeline
               </SheetDescription>
             </SheetHeader>
             
@@ -374,7 +344,7 @@ export default function LeadsPage() {
 
               <div className="flex gap-3 pt-6">
                 <Button type="submit" disabled={submitting} className="flex-1">
-                  {submitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Lead' : 'Create Lead')}
+                  {submitting ? 'Creating...' : 'Create Lead'}
                 </Button>
                 <SheetClose asChild>
                   <Button variant="outline" className="flex-1">Cancel</Button>
@@ -507,7 +477,6 @@ export default function LeadsPage() {
                 setFilteredLeads(updatedData);
               }}
               onConvertLead={handleConvertLead}
-              onEditLead={handleEditLead}
               onViewDetails={handleViewDetails}
             />
           )}
