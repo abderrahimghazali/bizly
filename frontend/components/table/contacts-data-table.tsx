@@ -3,15 +3,6 @@
 import * as React from "react"
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table"
 import { 
   IconArrowUp, 
@@ -25,8 +16,6 @@ import {
   IconTrash,
   IconBuilding,
   IconStarFilled,
-  IconLayoutColumns,
-  IconChevronDown
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -37,17 +26,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +43,7 @@ import { toast } from "sonner"
 import { Contact } from "@/lib/api/contacts"
 import { ContactDetailsSheet } from "@/components/crm/contact-details-sheet"
 import { CompanyOption } from "@/lib/api/companies"
+import { DataTable } from "@/components/ui/data-table"
 
 function SortableHeader({ column, children }: { column: { toggleSorting: (ascending?: boolean) => void; getIsSorted: () => string | false }; children: React.ReactNode }) {
   return (
@@ -94,9 +74,6 @@ interface ContactsDataTableProps {
 }
 
 export function ContactsDataTable({ data, onDataChange, onEditContact, companies = [] }: ContactsDataTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [selectedContactId, setSelectedContactId] = React.useState<number | null>(null)
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
 
@@ -215,6 +192,7 @@ export function ContactsDataTable({ data, onDataChange, onEditContact, companies
       },
       {
         id: "actions",
+        header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
           const contact = row.original;
@@ -228,23 +206,22 @@ export function ContactsDataTable({ data, onDataChange, onEditContact, companies
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleViewDetails(contact.id)}>
                   <IconEye className="mr-2 h-4 w-4" />
                   View details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEditContact?.(contact)}>
-                  <IconEdit className="mr-2 h-4 w-4" />
-                  Edit contact
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <IconPhone className="mr-2 h-4 w-4" />
-                  Call contact
+                <DropdownMenuItem asChild>
+                  <a href={`tel:${contact.phone}`}>
+                    <IconPhone className="mr-2 h-4 w-4" />
+                    Call contact
+                  </a>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <IconMail className="mr-2 h-4 w-4" />
-                  Send email
+                <DropdownMenuItem asChild>
+                  <a href={`mailto:${contact.email}`}>
+                    <IconMail className="mr-2 h-4 w-4" />
+                    Send email
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <AlertDialog>
@@ -284,142 +261,16 @@ export function ContactsDataTable({ data, onDataChange, onEditContact, companies
     [handleContactDelete, handleViewDetails, onEditContact]
   )
 
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-    },
-  })
-
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter contacts..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="ml-auto">
-              <IconLayoutColumns className="mr-2 h-4 w-4" />
-              View
-              <IconChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[150px]">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {table
-              .getAllColumns()
-              .filter(
-                (column) =>
-                  typeof column.accessorFn !== "undefined" && column.getCanHide()
-              )
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} total contacts
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        entityName="contacts"
+        entityNameSingular="contact"
+        filterColumn="name"
+        filterPlaceholder="Filter contacts..."
+      />
 
       <ContactDetailsSheet
         open={isSheetOpen}
@@ -433,6 +284,6 @@ export function ContactsDataTable({ data, onDataChange, onEditContact, companies
           onDataChange(updatedData)
         }}
       />
-    </div>
+    </>
   )
 } 
