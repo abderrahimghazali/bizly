@@ -102,9 +102,14 @@ class Contact extends Model
      */
     public function setPrimary(): void
     {
+        // If this contact is not associated with a company, there is nothing to update
+        if (!$this->company) {
+            return;
+        }
+
         // First, unset all other primary contacts for this company
         $this->company->contacts()->where('id', '!=', $this->id)->update(['is_primary' => false]);
-        
+
         // Then set this contact as primary
         $this->update(['is_primary' => true]);
     }
