@@ -10,46 +10,55 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { ShoppingCart, Plus } from 'lucide-react';
-import { ordersApi, Order, CreateOrderData, type OrderStats } from '@/lib/api/orders';
+import { FileText, Plus, DollarSign, CreditCard } from 'lucide-react';
+import { invoicesApi, Invoice, CreateInvoiceData, MarkAsPaidData, type InvoiceStats } from '@/lib/api/invoices';
+import { ordersApi } from '@/lib/api/orders';
 import { quotesApi } from '@/lib/api/quotes';
 import { companiesApi } from '@/lib/api/companies';
 import { contactsApi } from '@/lib/api/contacts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { OrdersDataTable } from '@/components/table/orders-data-table';
+import { InvoicesDataTable } from '@/components/table/invoices-data-table';
 
-const createOrderSchema = z.object({
+const createInvoiceSchema = z.object({
   company_id: z.number().min(1, 'Company is required'),
   contact_id: z.number().optional(),
+  order_id: z.number().optional(),
   quote_id: z.number().optional(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  order_date: z.string().min(1, 'Order date is required'),
-  expected_delivery_date: z.string().optional(),
+  invoice_date: z.string().min(1, 'Invoice date is required'),
+  due_date: z.string().min(1, 'Due date is required'),
   subtotal: z.number().min(0, 'Subtotal must be positive'),
   tax_rate: z.number().min(0).max(100).optional(),
   discount_rate: z.number().min(0).max(100).optional(),
   currency: z.string().optional(),
-  shipping_address: z.string().optional(),
-  billing_address: z.string().optional(),
+  payment_terms: z.string().optional(),
   notes: z.string().optional(),
 });
 
-export default function OrdersPage() {
+const markAsPaidSchema = z.object({
+  amount: z.number().min(0.01, 'Amount must be greater than 0'),
+  paid_date: z.string().optional(),
+});
+
+export default function InvoicesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: ordersData, isLoading: ordersLoading } = useQuery({
-    queryKey: ['orders'],
-    queryFn: () => ordersApi.getAll(),
+  const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: () => invoicesApi.getAll(),
   });
 
   const { data: statsData } = useQuery({
-    queryKey: ['orders-stats'],
-    queryFn: () => ordersApi.getStats(),
+    queryKey: ['invoices-stats'],
+    queryFn: () => invoicesApi.getStats(),
   });
 
   const { data: companiesData, isLoading: companiesLoading } = useQuery({
@@ -57,51 +66,58 @@ export default function OrdersPage() {
     queryFn: () => companiesApi.getOptions(),
   });
 
+  const { data: ordersData } = useQuery({
+    queryKey: ['orders-for-invoices'],
+    queryFn: () => ordersApi.getAll({ status: 'confirmed' }),
+  });
+
   const { data: quotesData } = useQuery({
-    queryKey: ['quotes-for-orders'],
+    queryKey: ['quotes-for-invoices'],
     queryFn: () => quotesApi.getAll({ status: 'accepted' }),
   });
 
   const createMutation = useMutation({
-    mutationFn: ordersApi.create,
+    mutationFn: invoicesApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices-stats'] });
       setIsCreateOpen(false);
-      toast.success('Order created successfully!');
+      toast.success('Invoice created successfully!');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create order');
+      toast.error(error.response?.data?.message || 'Failed to create invoice');
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: ordersApi.delete,
+    mutationFn: invoicesApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders-stats'] });
-      toast.success('Order deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices-stats'] });
+      toast.success('Invoice deleted successfully!');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete order');
+      toast.error(error.response?.data?.message || 'Failed to delete invoice');
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: Order['status'] }) => 
-      ordersApi.update(id, { status }),
+  const markAsPaidMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: MarkAsPaidData }) => 
+      invoicesApi.markAsPaid(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders-stats'] });
-      toast.success('Order status updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices-stats'] });
+      setIsPaymentOpen(false);
+      setSelectedInvoice(null);
+      toast.success('Payment recorded successfully!');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update order status');
+      toast.error(error.response?.data?.message || 'Failed to record payment');
     },
   });
 
-  const form = useForm<CreateOrderData>({
-    resolver: zodResolver(createOrderSchema),
+  const form = useForm<CreateInvoiceData>({
+    resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       subtotal: 0,
       tax_rate: 0,
@@ -110,7 +126,15 @@ export default function OrdersPage() {
     },
   });
 
+  const paymentForm = useForm<MarkAsPaidData>({
+    resolver: zodResolver(markAsPaidSchema),
+    defaultValues: {
+      paid_date: new Date().toISOString().split('T')[0],
+    },
+  });
+
   const selectedCompanyId = form.watch('company_id');
+  const selectedOrderId = form.watch('order_id');
   const selectedQuoteId = form.watch('quote_id');
   
   const { data: contactsData, isLoading: contactsLoading } = useQuery({
@@ -119,36 +143,58 @@ export default function OrdersPage() {
     enabled: !!selectedCompanyId,
   });
 
-  // Auto-fill form when a quote is selected
+  // Auto-fill form when an order or quote is selected
+  const selectedOrder = ordersData?.data?.find((order: any) => order.id === selectedOrderId);
   const selectedQuote = quotesData?.data?.find((quote: any) => quote.id === selectedQuoteId);
   
   React.useEffect(() => {
-    if (selectedQuote) {
-      form.setValue('company_id', selectedQuote.company_id);
-      form.setValue('contact_id', selectedQuote.contact_id);
-      form.setValue('title', selectedQuote.title);
-      form.setValue('description', selectedQuote.description);
-      form.setValue('subtotal', selectedQuote.subtotal);
-      form.setValue('tax_rate', selectedQuote.tax_rate);
-      form.setValue('discount_rate', selectedQuote.discount_rate);
-      form.setValue('currency', selectedQuote.currency);
-      form.setValue('notes', selectedQuote.notes);
+    const source = selectedOrder || selectedQuote;
+    if (source) {
+      form.setValue('company_id', source.company_id);
+      form.setValue('contact_id', source.contact_id);
+      form.setValue('title', source.title);
+      form.setValue('description', source.description);
+      form.setValue('subtotal', source.subtotal);
+      form.setValue('tax_rate', source.tax_rate);
+      form.setValue('discount_rate', source.discount_rate);
+      form.setValue('currency', source.currency);
+      form.setValue('notes', source.notes);
+      
+      // Set due date to 30 days from today
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      form.setValue('due_date', dueDate.toISOString().split('T')[0]);
     }
-  }, [selectedQuote, form]);
+  }, [selectedOrder, selectedQuote, form]);
 
-  const onSubmit = (data: CreateOrderData) => {
+  const onSubmit = (data: CreateInvoiceData) => {
     createMutation.mutate(data);
   };
 
-  const stats: OrderStats = statsData?.stats || {
-    total: 0,
-    pending: 0,
-    confirmed: 0,
-    delivered: 0,
-    total_value: 0,
+  const onPaymentSubmit = (data: MarkAsPaidData) => {
+    if (selectedInvoice) {
+      markAsPaidMutation.mutate({ id: selectedInvoice.id, data });
+    }
   };
 
-  const orders: Order[] = ordersData?.data || [];
+  const handleMarkAsPaid = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    paymentForm.setValue('amount', invoice.due_amount);
+    setIsPaymentOpen(true);
+  };
+
+  const stats: InvoiceStats = statsData?.stats || {
+    total: 0,
+    draft: 0,
+    sent: 0,
+    paid: 0,
+    overdue: 0,
+    total_value: 0,
+    paid_value: 0,
+    due_value: 0,
+  };
+
+  const invoices: Invoice[] = invoicesData?.data || [];
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -157,63 +203,91 @@ export default function OrdersPage() {
     }).format(amount);
   };
 
-  const handleOrderDelete = (orderId: number) => {
-    deleteMutation.mutate(orderId);
-  };
-
-  const handleStatusChange = (orderId: number, newStatus: Order['status']) => {
-    updateStatusMutation.mutate({ id: orderId, status: newStatus });
+  const handleInvoiceDelete = (invoiceId: number) => {
+    deleteMutation.mutate(invoiceId);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Orders</h1>
+          <h1 className="text-3xl font-bold">Invoices</h1>
           <p className="text-muted-foreground">
-            Manage sales orders and fulfillment
+            Manage invoices and track payments
           </p>
         </div>
         <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <SheetTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Order
+              New Invoice
             </Button>
           </SheetTrigger>
           <SheetContent className="px-6 overflow-y-auto" style={{ width: '50vw', maxWidth: '50vw' }}>
             <SheetHeader>
-              <SheetTitle>Create New Order</SheetTitle>
+              <SheetTitle>Create New Invoice</SheetTitle>
               <SheetDescription>
-                Create a new sales order from scratch or from an accepted quote.
+                Create a new invoice from scratch, an order, or a quote.
               </SheetDescription>
             </SheetHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
-                <FormField
-                  control={form.control}
-                  name="quote_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>From Quote (Optional)</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a quote to auto-fill" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Create from scratch</SelectItem>
-                          {(quotesData?.data || []).map((quote: any) => (
-                            <SelectItem key={quote.id} value={quote.id.toString()}>
-                              {quote.quote_number} - {quote.title} ({formatCurrency(quote.total_amount, quote.currency)})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="order_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>From Order (Optional)</FormLabel>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value ? parseInt(value) : undefined);
+                          if (value) form.setValue('quote_id', undefined);
+                        }}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an order" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Don't use order</SelectItem>
+                            {(ordersData?.data || []).map((order: any) => (
+                              <SelectItem key={order.id} value={order.id.toString()}>
+                                {order.order_number} - {order.title} ({formatCurrency(order.total_amount, order.currency)})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="quote_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>From Quote (Optional)</FormLabel>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value ? parseInt(value) : undefined);
+                          if (value) form.setValue('order_id', undefined);
+                        }}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a quote" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Don't use quote</SelectItem>
+                            {(quotesData?.data || []).map((quote: any) => (
+                              <SelectItem key={quote.id} value={quote.id.toString()}>
+                                {quote.quote_number} - {quote.title} ({formatCurrency(quote.total_amount, quote.currency)})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
@@ -291,7 +365,7 @@ export default function OrdersPage() {
                     <FormItem>
                       <FormLabel>Title *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Order title" {...field} />
+                        <Input placeholder="Invoice title" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -305,7 +379,7 @@ export default function OrdersPage() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Order description" {...field} />
+                        <Textarea placeholder="Invoice description" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -315,10 +389,10 @@ export default function OrdersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="order_date"
+                    name="invoice_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Order Date *</FormLabel>
+                        <FormLabel>Invoice Date *</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -328,10 +402,10 @@ export default function OrdersPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="expected_delivery_date"
+                    name="due_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Expected Delivery</FormLabel>
+                        <FormLabel>Due Date *</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -400,26 +474,12 @@ export default function OrdersPage() {
                 
                 <FormField
                   control={form.control}
-                  name="shipping_address"
+                  name="payment_terms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Shipping Address</FormLabel>
+                      <FormLabel>Payment Terms</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Shipping address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="billing_address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Billing Address</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Billing address" {...field} />
+                        <Textarea placeholder="Payment terms and conditions" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -441,7 +501,7 @@ export default function OrdersPage() {
                 />
                 
                 <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Creating...' : 'Create Order'}
+                  {createMutation.isPending ? 'Creating...' : 'Create Invoice'}
                 </Button>
               </form>
             </Form>
@@ -449,12 +509,81 @@ export default function OrdersPage() {
         </Sheet>
       </div>
 
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Payment</DialogTitle>
+            <DialogDescription>
+              Record a payment for invoice {selectedInvoice?.invoice_number}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...paymentForm}>
+            <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">
+                  Total Amount: {selectedInvoice && formatCurrency(selectedInvoice.total_amount, selectedInvoice.currency)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Already Paid: {selectedInvoice && formatCurrency(selectedInvoice.paid_amount, selectedInvoice.currency)}
+                </div>
+                <div className="text-sm font-medium">
+                  Amount Due: {selectedInvoice && formatCurrency(selectedInvoice.due_amount, selectedInvoice.currency)}
+                </div>
+              </div>
+              
+              <FormField
+                control={paymentForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Amount *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={paymentForm.control}
+                name="paid_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsPaymentOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={markAsPaidMutation.isPending}>
+                  {markAsPaidMutation.isPending ? 'Recording...' : 'Record Payment'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -462,39 +591,45 @@ export default function OrdersPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Paid</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
+            <div className="text-2xl font-bold">{stats.paid}</div>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(stats.paid_value)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.confirmed}</div>
+            <div className="text-2xl font-bold">{stats.total - stats.paid}</div>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(stats.due_value)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+            <FileText className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.total_value)}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Orders Data Table */}
-      <OrdersDataTable 
-        data={orders}
-        loading={ordersLoading}
-        onDelete={handleOrderDelete}
-        onStatusChange={handleStatusChange}
+      {/* Invoices Data Table */}
+      <InvoicesDataTable 
+        data={invoices}
+        loading={invoicesLoading}
+        onDelete={handleInvoiceDelete}
+        onMarkAsPaid={handleMarkAsPaid}
       />
     </div>
   );

@@ -108,8 +108,16 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-4 pt-6">
-      <div className="flex items-center justify-end">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
+          <p className="text-muted-foreground">
+            Manage your business contacts and relationships
+          </p>
+        </div>
+        
         <PermissionWrapper 
           permission="create_contact"
           fallback={
@@ -264,8 +272,8 @@ export default function ContactsPage() {
                   </SheetClose>
                 </div>
               </form>
-            </SheetContent>
-          </Sheet>
+                          </SheetContent>
+            </Sheet>
         </PermissionWrapper>
       </div>
 

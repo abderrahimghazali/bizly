@@ -90,18 +90,25 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6">
-      <div className="flex items-center justify-end">
-        <div className="flex items-center space-x-2">
-          <PermissionWrapper 
-            permission="create_company"
-            fallback={
-              <Button disabled className="bg-gray-100">
-                <IconPlus className="mr-2 h-4 w-4" />
-                Add Company (No Permission)
-              </Button>
-            }
-          >
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
+          <p className="text-muted-foreground">
+            Manage your business relationships and company profiles
+          </p>
+        </div>
+        
+        <PermissionWrapper 
+          permission="create_company"
+          fallback={
+            <Button disabled className="bg-gray-100">
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Company (No Permission)
+            </Button>
+          }
+        >
             <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <SheetTrigger asChild>
                 <Button className="flex items-center space-x-2">
@@ -220,7 +227,6 @@ export default function CompaniesPage() {
               </SheetContent>
             </Sheet>
           </PermissionWrapper>
-        </div>
       </div>
 
       {/* Permission-based content */}

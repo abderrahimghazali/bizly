@@ -19,5 +19,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed CRM data
+        $this->call([
+            CrmSeeder::class,
+        ]);
     }
 }

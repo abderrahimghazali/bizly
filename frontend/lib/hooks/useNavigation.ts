@@ -98,9 +98,9 @@ export function useNavigation() {
           },
           {
             title: "Invoices",
-            url: "/documents/invoices",
+            url: "/sales/invoices",
             icon: IconReceipt,
-            permissions: ['view_documents'],
+            permissions: ['view_companies'],
           },
         ],
       },

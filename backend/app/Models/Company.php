@@ -89,6 +89,30 @@ class Company extends Model
     }
 
     /**
+     * Get all quotes associated with this company
+     */
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    /**
+     * Get all orders associated with this company
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get all invoices associated with this company
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
      * Scope to filter by status
      */
     public function scopeByStatus($query, $status)

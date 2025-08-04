@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DealController;
+use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\InvoiceController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -85,6 +88,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('deals', DealController::class);
         Route::get('deals-stats', [DealController::class, 'stats']);
         Route::get('deals-assignable-users', [DealController::class, 'getAssignableUsers']);
+    });
+    
+    // Sales routes
+    Route::middleware(['role:admin,manager,employee'])->group(function () {
+        // Quotes
+        Route::apiResource('quotes', QuoteController::class);
+        Route::get('quotes-stats', [QuoteController::class, 'stats']);
+        
+        // Orders
+        Route::apiResource('orders', OrderController::class);
+        Route::get('orders-stats', [OrderController::class, 'stats']);
+        Route::post('quotes/{quote}/create-order', [OrderController::class, 'createFromQuote']);
+        
+        // Invoices
+        Route::apiResource('invoices', InvoiceController::class);
+        Route::get('invoices-stats', [InvoiceController::class, 'stats']);
+        Route::post('orders/{order}/create-invoice', [InvoiceController::class, 'createFromOrder']);
+        Route::post('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markAsPaid']);
     });
     
     // Admin-only routes
