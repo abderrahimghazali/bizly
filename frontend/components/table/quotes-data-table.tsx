@@ -5,7 +5,6 @@ import {
   IconDotsVertical,
   IconTrash,
   IconEye,
-  IconEdit,
   IconArrowUp,
   IconArrowDown,
   IconArrowsSort,
@@ -38,7 +37,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { toast } from 'sonner'
 import { DataTable } from '@/components/ui/data-table'
 import { Quote, quoteStatuses } from '@/lib/api/quotes'
 
@@ -53,7 +51,7 @@ function SortableHeader({
   column, 
   children 
 }: { 
-  column: any
+  column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => string | false }
   children: React.ReactNode 
 }) {
   return (

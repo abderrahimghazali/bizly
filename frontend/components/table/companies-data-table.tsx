@@ -41,31 +41,8 @@ import {
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { CompanyDetailsSheet } from '@/components/crm/company-details-sheet'
-import { Company as ApiCompany } from '@/lib/api/companies'
+import { Company } from '@/lib/api/companies'
 import { DataTable } from '@/components/ui/data-table'
-
-// Company interface for the data table
-export interface Company {
-  id: number
-  name: string
-  industry: string
-  status: 'active' | 'inactive' | 'prospect'
-  email?: string
-  phone?: string
-  website?: string
-  address?: string
-  contact_person?: string
-  created_at?: string
-  updated_at?: string
-  // Add primary contact
-  primary_contact?: {
-    id: number
-    full_name: string
-    email?: string
-    phone?: string
-    position?: string
-  }
-}
 
 interface CompaniesDataTableProps {
   data: Company[]
@@ -168,7 +145,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
         return (
           <div className="flex items-center space-x-2">
             <IconBriefcase className="h-4 w-4 text-muted-foreground" />
-            <span>{row.getValue("industry")}</span>
+            <span>{row.getValue("industry") || 'N/A'}</span>
           </div>
         )
       },
@@ -323,12 +300,12 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
         companyId={selectedCompanyId}
-        onCompanyUpdate={(updatedCompany: ApiCompany) => {
+        onCompanyUpdate={(updatedCompany: Company) => {
           const updatedData = data.map(company => 
             company.id === updatedCompany.id ? {
               ...company,
               name: updatedCompany.name,
-              industry: updatedCompany.industry || '',
+              industry: updatedCompany.industry,
               status: updatedCompany.status,
               email: updatedCompany.email,
               phone: updatedCompany.phone,

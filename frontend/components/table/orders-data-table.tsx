@@ -5,16 +5,11 @@ import {
   IconDotsVertical,
   IconTrash,
   IconEye,
-  IconEdit,
   IconArrowUp,
   IconArrowDown,
   IconArrowsSort,
   IconShoppingCart,
-  IconBuilding,
-  IconCalendar,
-  IconCurrencyDollar,
   IconFileText,
-  IconTruck,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -56,7 +51,7 @@ function SortableHeader({
   column, 
   children 
 }: { 
-  column: any
+  column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => string | false }
   children: React.ReactNode 
 }) {
   return (

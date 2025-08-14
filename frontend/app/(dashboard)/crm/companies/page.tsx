@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { PermissionWrapper } from '@/components/rbac/permission-wrapper';
-import { CompaniesDataTable, Company } from '@/components/table';
-import { companiesApi } from '@/lib/api/companies';
+import { CompaniesDataTable } from '@/components/table';
+import { companiesApi, Company } from '@/lib/api/companies';
 import { Button } from '@/components/ui/button';
 import { 
   Sheet, 

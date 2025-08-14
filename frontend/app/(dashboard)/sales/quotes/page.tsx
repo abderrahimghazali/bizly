@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Plus } from 'lucide-react';
-import { quotesApi, Quote, CreateQuoteData, quoteStatuses, currencies, type QuoteStats } from '@/lib/api/quotes';
+import { quotesApi, Quote, CreateQuoteData, currencies, type QuoteStats } from '@/lib/api/quotes';
 import { companiesApi } from '@/lib/api/companies';
 import { contactsApi } from '@/lib/api/contacts';
 import { useForm } from 'react-hook-form';
@@ -51,7 +51,7 @@ export default function QuotesPage() {
     queryFn: () => quotesApi.getStats(),
   });
 
-  const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
+  const { data: companiesData, isLoading: companiesLoading } = useQuery({
     queryKey: ['companies-options'],
     queryFn: () => companiesApi.getOptions(),
   });
@@ -64,8 +64,11 @@ export default function QuotesPage() {
       setIsCreateOpen(false);
       toast.success('Quote created successfully!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create quote');
+    onError: (error: unknown) => {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error.response as { data?: { message?: string } })?.data?.message || 'Failed to create quote'
+        : 'Failed to create quote';
+      toast.error(errorMessage);
     },
   });
 
@@ -76,8 +79,11 @@ export default function QuotesPage() {
       queryClient.invalidateQueries({ queryKey: ['quotes-stats'] });
       toast.success('Quote deleted successfully!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete quote');
+    onError: (error: unknown) => {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error.response as { data?: { message?: string } })?.data?.message || 'Failed to delete quote'
+        : 'Failed to delete quote';
+      toast.error(errorMessage);
     },
   });
 
@@ -93,7 +99,7 @@ export default function QuotesPage() {
 
   const selectedCompanyId = form.watch('company_id');
   
-  const { data: contactsData, isLoading: contactsLoading, error: contactsError } = useQuery({
+  const { data: contactsData, isLoading: contactsLoading } = useQuery({
     queryKey: ['contacts-options', selectedCompanyId],
     queryFn: () => contactsApi.getOptions({ company_id: selectedCompanyId }),
     enabled: !!selectedCompanyId,
@@ -125,11 +131,12 @@ export default function QuotesPage() {
 
 
   const handleQuoteUpdate = (updatedQuote: Quote) => {
-    queryClient.setQueryData(['quotes'], (oldData: any) => {
-      if (!oldData) return oldData;
+    queryClient.setQueryData(['quotes'], (oldData: unknown) => {
+      if (!oldData || typeof oldData !== 'object' || !('data' in oldData)) return oldData;
+      const typedOldData = oldData as { data: Quote[] };
       return {
-        ...oldData,
-        data: oldData.data.map((quote: Quote) => 
+        ...typedOldData,
+        data: typedOldData.data.map((quote: Quote) => 
           quote.id === updatedQuote.id ? updatedQuote : quote
         )
       };

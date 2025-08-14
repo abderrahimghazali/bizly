@@ -72,7 +72,7 @@ export default function TeamManagementPage() {
       const response = await apiClient.get('/manager/team');
       setTeamData(response.data);
       // Expand all managers by default
-      const managerIds = new Set(response.data.hierarchy.map((h: TeamHierarchy) => h.manager.id as number));
+      const managerIds = new Set<number>(response.data.hierarchy.map((h: TeamHierarchy) => h.manager.id as number));
       setExpandedManagers(managerIds);
     } catch (error) {
       console.error('Failed to fetch team data:', error);

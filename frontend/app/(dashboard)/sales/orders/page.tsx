@@ -73,8 +73,11 @@ export default function OrdersPage() {
       setIsCreateOpen(false);
       toast.success('Order created successfully!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create order');
+    onError: (error: unknown) => {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error.response as { data?: { message?: string } })?.data?.message || 'Failed to create order'
+        : 'Failed to create order';
+      toast.error(errorMessage);
     },
   });
 
@@ -85,8 +88,11 @@ export default function OrdersPage() {
       queryClient.invalidateQueries({ queryKey: ['orders-stats'] });
       toast.success('Order deleted successfully!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete order');
+    onError: (error: unknown) => {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error.response as { data?: { message?: string } })?.data?.message || 'Failed to delete order'
+        : 'Failed to delete order';
+      toast.error(errorMessage);
     },
   });
 
@@ -98,8 +104,11 @@ export default function OrdersPage() {
       queryClient.invalidateQueries({ queryKey: ['orders-stats'] });
       toast.success('Order status updated successfully!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update order status');
+    onError: (error: unknown) => {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error.response as { data?: { message?: string } })?.data?.message || 'Failed to update order status'
+        : 'Failed to update order status';
+      toast.error(errorMessage);
     },
   });
 
@@ -175,11 +184,12 @@ export default function OrdersPage() {
 
 
   const handleOrderUpdate = (updatedOrder: Order) => {
-    queryClient.setQueryData(['orders'], (oldData: any) => {
-      if (!oldData) return oldData;
+    queryClient.setQueryData(['orders'], (oldData: unknown) => {
+      if (!oldData || typeof oldData !== 'object' || !('data' in oldData)) return oldData;
+      const typedOldData = oldData as { data: Order[] };
       return {
-        ...oldData,
-        data: oldData.data.map((order: Order) => 
+        ...typedOldData,
+        data: typedOldData.data.map((order: Order) => 
           order.id === updatedOrder.id ? updatedOrder : order
         )
       };
