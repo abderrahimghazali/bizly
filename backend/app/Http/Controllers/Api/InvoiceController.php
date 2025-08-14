@@ -78,7 +78,6 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): JsonResponse
     {
-        $this->authorize('view', $invoice);
         return response()->json($invoice->load(['company', 'contact', 'user', 'order', 'quote']));
     }
 

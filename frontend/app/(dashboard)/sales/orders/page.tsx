@@ -20,6 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { OrdersDataTable } from '@/components/table/orders-data-table';
+import { OrderDetailsSheet } from '@/components/sales/order-details-sheet';
 
 const createOrderSchema = z.object({
   company_id: z.number().min(1, 'Company is required'),
@@ -40,6 +41,8 @@ const createOrderSchema = z.object({
 
 export default function OrdersPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: ordersData, isLoading: ordersLoading } = useQuery({
@@ -163,6 +166,24 @@ export default function OrdersPage() {
 
   const handleStatusChange = (orderId: number, newStatus: Order['status']) => {
     updateStatusMutation.mutate({ id: orderId, status: newStatus });
+  };
+
+  const handleViewDetails = (orderId: number) => {
+    setSelectedOrderId(orderId);
+    setIsDetailsSheetOpen(true);
+  };
+
+
+  const handleOrderUpdate = (updatedOrder: Order) => {
+    queryClient.setQueryData(['orders'], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        data: oldData.data.map((order: Order) => 
+          order.id === updatedOrder.id ? updatedOrder : order
+        )
+      };
+    });
   };
 
   return (
@@ -495,6 +516,15 @@ export default function OrdersPage() {
         loading={ordersLoading}
         onDelete={handleOrderDelete}
         onStatusChange={handleStatusChange}
+        onViewDetails={handleViewDetails}
+      />
+
+      {/* Order Details Sheet */}
+      <OrderDetailsSheet 
+        open={isDetailsSheetOpen}
+        onOpenChange={setIsDetailsSheetOpen}
+        orderId={selectedOrderId}
+        onOrderUpdate={handleOrderUpdate}
       />
     </div>
   );

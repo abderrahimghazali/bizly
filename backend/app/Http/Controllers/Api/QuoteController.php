@@ -74,7 +74,6 @@ class QuoteController extends Controller
 
     public function show(Quote $quote): JsonResponse
     {
-        $this->authorize('view', $quote);
         return response()->json($quote->load(['company', 'contact', 'user']));
     }
 

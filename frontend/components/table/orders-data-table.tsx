@@ -49,6 +49,7 @@ interface OrdersDataTableProps {
   loading?: boolean
   onDelete?: (orderId: number) => void
   onStatusChange?: (orderId: number, status: Order['status']) => void
+  onViewDetails?: (orderId: number) => void
 }
 
 function SortableHeader({ 
@@ -76,7 +77,7 @@ function SortableHeader({
   )
 }
 
-export function OrdersDataTable({ data, loading = false, onDelete, onStatusChange }: OrdersDataTableProps) {
+export function OrdersDataTable({ data, loading = false, onDelete, onStatusChange, onViewDetails }: OrdersDataTableProps) {
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -253,13 +254,9 @@ export function OrdersDataTable({ data, loading = false, onDelete, onStatusChang
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onViewDetails?.(order.id)}>
                 <IconEye className="mr-2 h-4 w-4" />
                 View
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconFileText className="mr-2 h-4 w-4" />
@@ -299,7 +296,7 @@ export function OrdersDataTable({ data, loading = false, onDelete, onStatusChang
         )
       },
     },
-  ], [onDelete, onStatusChange])
+  ], [onDelete, onStatusChange, onViewDetails])
 
   return (
     <DataTable
@@ -307,7 +304,7 @@ export function OrdersDataTable({ data, loading = false, onDelete, onStatusChang
       data={data}
       entityName="orders"
       entityNameSingular="order"
-      filterColumn="title"
+      filterColumn="order_number"
       filterPlaceholder="Filter orders..."
       loading={loading}
       emptyMessage="No orders found."

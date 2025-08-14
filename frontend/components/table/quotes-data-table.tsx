@@ -46,6 +46,7 @@ interface QuotesDataTableProps {
   data: Quote[]
   loading?: boolean
   onDelete?: (quoteId: number) => void
+  onViewDetails?: (quoteId: number) => void
 }
 
 function SortableHeader({ 
@@ -73,7 +74,7 @@ function SortableHeader({
   )
 }
 
-export function QuotesDataTable({ data, loading = false, onDelete }: QuotesDataTableProps) {
+export function QuotesDataTable({ data, loading = false, onDelete, onViewDetails }: QuotesDataTableProps) {
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -236,13 +237,9 @@ export function QuotesDataTable({ data, loading = false, onDelete }: QuotesDataT
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onViewDetails?.(quote.id)}>
                 <IconEye className="mr-2 h-4 w-4" />
                 View
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
@@ -278,7 +275,7 @@ export function QuotesDataTable({ data, loading = false, onDelete }: QuotesDataT
         )
       },
     },
-  ], [onDelete])
+  ], [onDelete, onViewDetails])
 
   return (
     <DataTable
@@ -286,7 +283,7 @@ export function QuotesDataTable({ data, loading = false, onDelete }: QuotesDataT
       data={data}
       entityName="quotes"
       entityNameSingular="quote"
-      filterColumn="title"
+      filterColumn="quote_number"
       filterPlaceholder="Filter quotes..."
       loading={loading}
       emptyMessage="No quotes found."

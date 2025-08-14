@@ -75,7 +75,6 @@ class OrderController extends Controller
 
     public function show(Order $order): JsonResponse
     {
-        $this->authorize('view', $order);
         return response()->json($order->load(['company', 'contact', 'user', 'quote']));
     }
 

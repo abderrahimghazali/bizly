@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { QuotesDataTable } from '@/components/table/quotes-data-table';
+import { QuoteDetailsSheet } from '@/components/sales/quote-details-sheet';
 
 const createQuoteSchema = z.object({
   company_id: z.number().min(1, 'Company is required'),
@@ -36,6 +37,8 @@ const createQuoteSchema = z.object({
 
 export default function QuotesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<number | null>(null);
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: quotesData, isLoading: quotesLoading } = useQuery({
@@ -113,6 +116,24 @@ export default function QuotesPage() {
 
   const handleQuoteDelete = (quoteId: number) => {
     deleteMutation.mutate(quoteId);
+  };
+
+  const handleViewDetails = (quoteId: number) => {
+    setSelectedQuoteId(quoteId);
+    setIsDetailsSheetOpen(true);
+  };
+
+
+  const handleQuoteUpdate = (updatedQuote: Quote) => {
+    queryClient.setQueryData(['quotes'], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        data: oldData.data.map((quote: Quote) => 
+          quote.id === updatedQuote.id ? updatedQuote : quote
+        )
+      };
+    });
   };
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
@@ -430,6 +451,15 @@ export default function QuotesPage() {
         data={quotes}
         loading={quotesLoading}
         onDelete={handleQuoteDelete}
+        onViewDetails={handleViewDetails}
+      />
+
+      {/* Quote Details Sheet */}
+      <QuoteDetailsSheet 
+        open={isDetailsSheetOpen}
+        onOpenChange={setIsDetailsSheetOpen}
+        quoteId={selectedQuoteId}
+        onQuoteUpdate={handleQuoteUpdate}
       />
     </div>
   );
