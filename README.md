@@ -1,5 +1,7 @@
 # Bizly
 
+[![Tests](https://github.com/abderrahimghazali/bizly/actions/workflows/test.yml/badge.svg)](https://github.com/abderrahimghazali/bizly/actions/workflows/test.yml)
+
 A modern, professional business management platform built with Next.js and Laravel.
 
 ## 🚀 Overview
