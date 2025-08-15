@@ -38,11 +38,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { CompanyDetailsSheet } from '@/components/crm/company-details-sheet'
-import { Company } from '@/lib/api/companies'
+import { Company, companiesApi } from '@/lib/api/companies'
 import { DataTable } from '@/components/ui/data-table'
+import { useDataTable, useSheetStates } from '@/lib/hooks/useDataTable'
 
 interface CompaniesDataTableProps {
   data: Company[]
@@ -75,35 +74,42 @@ function SortableHeader({
 }
 
 export function CompaniesDataTable({ data: initialData, onDataChange }: CompaniesDataTableProps) {
-  const [data, setData] = React.useState(() => initialData)
-  const router = useRouter()
-  const [selectedCompanyId, setSelectedCompanyId] = React.useState<number | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = React.useState(false)
-  
-  // Update internal state when parent data changes (for filtering)
-  React.useEffect(() => {
-    setData(initialData)
-  }, [initialData])
+  // Use the data table hook
+  const dataTable = useDataTable({
+    initialData,
+    config: {
+      entityName: 'companies',
+      entityNameSingular: 'company',
+      filterColumn: 'name',
+      searchPlaceholder: 'Filter companies...'
+    },
+    actions: {
+      onDelete: async (company: Company) => {
+        await companiesApi.delete(company.id)
+      }
+    },
+    onDataChange
+  })
 
-  const handleCompanyDelete = React.useCallback(async (companyId: number) => {
-    try {
-      // Here you would call the API to delete the company
-      // await companiesApi.delete(companyId)
-      
-      const updatedData = data.filter(company => company.id !== companyId)
-      setData(updatedData)
-      onDataChange?.(updatedData)
-      toast.success('Company deleted successfully')
-    } catch (error) {
-      console.error('Failed to delete company:', error)
-      toast.error('Failed to delete company')
-    }
-  }, [data, onDataChange])
+  // Use sheet states hook
+  const sheets = useSheetStates<Company>()
 
-  const handleViewDetails = React.useCallback((companyId: number) => {
-    setSelectedCompanyId(companyId)
-    setIsSheetOpen(true)
-  }, [])
+  const handleCompanyUpdate = React.useCallback((updatedCompany: Company) => {
+    dataTable.updateItem(
+      updatedCompany.id,
+      (company) => ({
+        ...company,
+        name: updatedCompany.name,
+        industry: updatedCompany.industry,
+        status: updatedCompany.status,
+        email: updatedCompany.email,
+        phone: updatedCompany.phone,
+        website: updatedCompany.website,
+        address: updatedCompany.address,
+      }),
+      (company) => company.id
+    )
+  }, [dataTable])
 
   const columns: ColumnDef<Company>[] = React.useMemo(() => [
     {
@@ -244,7 +250,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => handleViewDetails(company.id)}
+                onClick={() => sheets.openViewSheet(company)}
               >
                 <IconEye className="mr-2 h-4 w-4" />
                 View details
@@ -270,7 +276,7 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => handleCompanyDelete(company.id)}
+                      onClick={() => dataTable.handleDelete(company, (c) => c.id)}
                       className="bg-red-600 hover:bg-red-700"
                     >
                       Delete
@@ -283,13 +289,13 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
         )
       },
     },
-  ], [handleCompanyDelete, handleViewDetails, router])
+  ], [dataTable, sheets])
 
   return (
     <>
       <DataTable
         columns={columns}
-        data={data}
+        data={dataTable.filteredData}
         entityName="companies"
         entityNameSingular="company"
         filterColumn="name"
@@ -297,25 +303,10 @@ export function CompaniesDataTable({ data: initialData, onDataChange }: Companie
       />
 
       <CompanyDetailsSheet
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        companyId={selectedCompanyId}
-        onCompanyUpdate={(updatedCompany: Company) => {
-          const updatedData = data.map(company => 
-            company.id === updatedCompany.id ? {
-              ...company,
-              name: updatedCompany.name,
-              industry: updatedCompany.industry,
-              status: updatedCompany.status,
-              email: updatedCompany.email,
-              phone: updatedCompany.phone,
-              website: updatedCompany.website,
-              address: updatedCompany.address,
-            } : company
-          )
-          setData(updatedData)
-          onDataChange?.(updatedData)
-        }}
+        open={sheets.viewSheetOpen}
+        onOpenChange={sheets.setViewSheetOpen}
+        companyId={sheets.selectedItem?.id || null}
+        onCompanyUpdate={handleCompanyUpdate}
       />
     </>
   )

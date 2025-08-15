@@ -202,13 +202,14 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "title",
       header: ({ column }) => <SortableHeader column={column}>Title</SortableHeader>,
+      size: 200,
       cell: ({ row }) => {
         const deal = row.original
         return (
-          <div className="flex flex-col">
-            <span className="font-medium">{deal.title}</span>
+          <div className="flex flex-col max-w-[200px]">
+            <span className="font-medium truncate" title={deal.title}>{deal.title}</span>
             {deal.description && (
-              <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+              <span className="text-sm text-muted-foreground truncate" title={deal.description}>
                 {deal.description}
               </span>
             )}
@@ -219,12 +220,13 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "amount",
       header: ({ column }) => <SortableHeader column={column}>Amount</SortableHeader>,
+      size: 140,
       cell: ({ row }) => {
         const deal = row.original
         return (
-          <div className="flex flex-col">
-            <span className="font-medium">{formatCurrency(deal.amount)}</span>
-            <span className="text-sm text-muted-foreground">
+          <div className="flex flex-col max-w-[140px]">
+            <span className="font-medium truncate" title={formatCurrency(deal.amount)}>{formatCurrency(deal.amount)}</span>
+            <span className="text-sm text-muted-foreground truncate" title={`${deal.probability}% • ${formatCurrency(deal.weighted_amount)}`}>
               {deal.probability}% • {formatCurrency(deal.weighted_amount)}
             </span>
           </div>
@@ -234,6 +236,7 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "stage",
       header: "Stage",
+      size: 120,
       cell: ({ row }) => <StageBadge stage={row.original.stage} />,
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
@@ -242,23 +245,24 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "expected_close_date",
       header: ({ column }) => <SortableHeader column={column}>Close Date</SortableHeader>,
+      size: 150,
       cell: ({ row }) => {
         const deal = row.original
         const isOverdue = deal.is_overdue
         const daysUntilClose = deal.days_until_close
         
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col max-w-[150px]">
             <span className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
               {formatDate(deal.expected_close_date)}
             </span>
             {isOverdue ? (
               <span className="text-sm text-red-600 flex items-center">
-                <IconAlertTriangle className="w-3 h-3 mr-1" />
-                {Math.abs(daysUntilClose)} days overdue
+                <IconAlertTriangle className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{Math.abs(daysUntilClose)} days overdue</span>
               </span>
             ) : daysUntilClose >= 0 ? (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground truncate">
                 {daysUntilClose === 0 ? 'Today' : `${daysUntilClose} days left`}
               </span>
             ) : null}
@@ -269,12 +273,12 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "company",
       header: "Company",
+      size: 150,
       cell: ({ row }) => {
         const deal = row.original
         return deal.company ? (
-          <div className="flex items-center">
-            <IconBuilding className="w-4 h-4 mr-2 text-muted-foreground" />
-            <span>{deal.company.name}</span>
+          <div className="max-w-[150px]">
+            <span className="truncate" title={deal.company.name}>{deal.company.name}</span>
           </div>
         ) : (
           <span className="text-muted-foreground">No company</span>
@@ -284,6 +288,7 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "assigned_user",
       header: "Assigned To",
+      size: 160,
       cell: ({ row }) => {
         const deal = row.original
         const currentUserId = deal.assigned_user?.id?.toString() || "unassigned"
@@ -337,6 +342,7 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       accessorKey: "source",
       header: "Source",
+      size: 120,
       cell: ({ row }) => {
         const source = row.original.source
         if (!source) {
@@ -352,6 +358,7 @@ export function DealsDataTable({ data: initialData, assignableUsers, onDataChang
     {
       id: "actions",
       header: "Actions",
+      size: 80,
       cell: ({ row }) => {
         return (
           <DropdownMenu>

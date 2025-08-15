@@ -2,13 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Company, companiesApi, UpdateCompanyData, companyStatuses } from '@/lib/api/companies';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { BusinessSheet } from '@/components/ui/business-sheet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -180,16 +174,13 @@ export function CompanyDetailsSheet({ open, onOpenChange, companyId, onCompanyUp
   if (!open) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:!w-[50vw] sm:!max-w-[50vw] overflow-y-auto">
-        <SheetHeader className="space-y-4 pb-6 px-6">
-          <SheetTitle className="text-2xl">
-            {loading ? 'Loading...' : !company ? 'Company Not Found' : company.name}
-          </SheetTitle>
-          <SheetDescription>
-            {loading ? 'Loading company details...' : !company ? 'The requested company could not be found' : 'Company Details & Information'}
-          </SheetDescription>
-        </SheetHeader>
+    <BusinessSheet 
+      open={open} 
+      onOpenChange={onOpenChange}
+      title={loading ? 'Loading...' : !company ? 'Company Not Found' : company.name}
+      description={loading ? 'Loading company details...' : !company ? 'The requested company could not be found' : 'Company Details & Information'}
+      size="wide"
+    >
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -206,7 +197,7 @@ export function CompanyDetailsSheet({ open, onOpenChange, companyId, onCompanyUp
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-end space-x-2 pb-6 px-6">
+            <div className="flex items-center justify-end space-x-2 pb-6">
                   {isEditing ? (
                     <>
                       <Button 
@@ -241,7 +232,7 @@ export function CompanyDetailsSheet({ open, onOpenChange, companyId, onCompanyUp
                   )}
             </div>
 
-            <div className="space-y-6 px-6">
+            <div className="space-y-6">
               {/* Company Information */}
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
@@ -736,7 +727,6 @@ export function CompanyDetailsSheet({ open, onOpenChange, companyId, onCompanyUp
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+    </BusinessSheet>
   );
 }

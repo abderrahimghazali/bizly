@@ -3,38 +3,78 @@
 import { useState, useEffect } from 'react';
 import { PermissionWrapper } from '@/components/rbac/permission-wrapper';
 import { CompaniesDataTable } from '@/components/table';
-import { companiesApi, Company } from '@/lib/api/companies';
+import { companiesApi, Company, CreateCompanyData } from '@/lib/api/companies';
 import { Button } from '@/components/ui/button';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger,
-  SheetClose 
-} from '@/components/ui/sheet';
+import { FormSheet } from '@/components/ui/business-sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { IconBuilding, IconPlus } from '@tabler/icons-react';
-import { toast } from 'sonner';
+import { useBusinessForm, validators, combineValidations } from '@/lib/hooks/useBusinessForm';
+import { useDataTable } from '@/lib/hooks/useDataTable';
+
+const initialFormData: CreateCompanyData = {
+  name: '',
+  industry: '',
+  status: 'active',
+  email: '',
+  phone: '',
+  website: '',
+  address: '',
+  contact_person: ''
+};
+
+// Form validation
+const validateCompanyForm = (data: CreateCompanyData): string | null => {
+  return combineValidations(data, [
+    (data) => validators.required(data.name, 'Company name'),
+    (data) => validators.required(data.industry, 'Industry'),
+    (data) => data.email ? validators.email(data.email) : null,
+    (data) => validators.minLength(data.name || '', 2, 'Company name'),
+    (data) => validators.maxLength(data.name || '', 100, 'Company name'),
+  ]);
+};
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    industry: '',
-    status: 'active' as 'active' | 'inactive' | 'prospect',
-    email: '',
-    phone: '',
-    website: '',
-    address: '',
-    contact_person: ''
+
+  // Data table hook
+  const dataTable = useDataTable({
+    initialData: companies,
+    config: {
+      entityName: 'companies',
+      entityNameSingular: 'company',
+      filterColumn: 'name',
+      searchPlaceholder: 'Search companies...'
+    },
+    actions: {
+      onDelete: async (company: Company) => {
+        await companiesApi.delete(company.id);
+      }
+    },
+    onDataChange: setCompanies
+  });
+
+  // Form hook
+  const form = useBusinessForm<Company, CreateCompanyData>({
+    initialData: initialFormData,
+    onSubmit: async (data) => {
+      const response = await companiesApi.create(data);
+      return {
+        success: true,
+        data: response.company,
+        message: response.message
+      };
+    },
+    onSuccess: (newCompany) => {
+      dataTable.updateData([newCompany, ...companies]);
+      setIsCreateOpen(false);
+    },
+    validateForm: validateCompanyForm,
+    resetOnSuccess: true
   });
 
   // Fetch companies on component mount
@@ -49,44 +89,14 @@ export default function CompaniesPage() {
       setCompanies(response.data);
     } catch (error) {
       console.error('Failed to fetch companies:', error);
-      toast.error('Failed to load companies');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      const response = await companiesApi.create(formData);
-      
-      if (response.company) {
-        // Add the new company to the list
-        setCompanies(prev => [response.company, ...prev]);
-        
-        // Reset form
-        setFormData({
-          name: '',
-          industry: '',
-          status: 'active',
-          email: '',
-          phone: '',
-          website: '',
-          address: '',
-          contact_person: ''
-        });
-        
-        setIsCreateOpen(false);
-        toast.success(response.message || 'Company created successfully!');
-      }
-    } catch (error: unknown) {
-      console.error('Failed to create company:', error);
-      toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create company');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleCreateCompany = () => {
+    form.resetForm();
+    setIsCreateOpen(true);
   };
 
   return (
@@ -109,124 +119,11 @@ export default function CompaniesPage() {
             </Button>
           }
         >
-            <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <SheetTrigger asChild>
-                <Button className="flex items-center space-x-2">
-                  <IconPlus className="h-4 w-4" />
-                  <span>Add Company</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-                <SheetHeader className="px-6 py-6">
-                  <SheetTitle>Add New Company</SheetTitle>
-                  <SheetDescription>
-                    Create a new company profile to manage business relationships.
-                  </SheetDescription>
-                </SheetHeader>
-                
-                <form onSubmit={handleFormSubmit} className="px-6 pb-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Company Name *</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Enter company name"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="industry">Industry *</Label>
-                      <Input
-                        id="industry"
-                        value={formData.industry}
-                        onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                        placeholder="e.g., Technology, Manufacturing"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="status">Status</Label>
-                      <Select value={formData.status} onValueChange={(value: 'active' | 'inactive' | 'prospect') => setFormData({ ...formData, status: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="prospect">Prospect</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="contact_person">Contact Person</Label>
-                      <Input
-                        id="contact_person"
-                        value={formData.contact_person}
-                        onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-                        placeholder="Primary contact name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="company@example.com"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+1 (555) 123-4567"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="website">Website</Label>
-                      <Input
-                        id="website"
-                        value={formData.website}
-                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                        placeholder="https://company.com"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Textarea
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder="Company address..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-6">
-                    <Button type="submit" disabled={submitting} className="flex-1">
-                      {submitting ? 'Creating...' : 'Create Company'}
-                    </Button>
-                    <SheetClose asChild>
-                      <Button variant="outline" className="flex-1">Cancel</Button>
-                    </SheetClose>
-                  </div>
-                </form>
-              </SheetContent>
-            </Sheet>
-          </PermissionWrapper>
+          <Button onClick={handleCreateCompany}>
+            <IconPlus className="mr-2 h-4 w-4" />
+            Add Company
+          </Button>
+        </PermissionWrapper>
       </div>
 
       {/* Permission-based content */}
@@ -252,11 +149,129 @@ export default function CompaniesPage() {
           </div>
         ) : (
           <CompaniesDataTable 
-            data={companies} 
-            onDataChange={setCompanies} 
+            data={dataTable.filteredData} 
+            onDataChange={dataTable.updateData} 
           />
         )}
       </PermissionWrapper>
+
+      {/* Create Company Form Sheet */}
+      <FormSheet
+        open={isCreateOpen}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) form.resetForm();
+        }}
+        title="Add New Company"
+        description="Create a new company profile to manage business relationships."
+        size="wide"
+        onSubmit={form.handleSubmit}
+        submitLabel="Create Company"
+        isSubmitting={form.isSubmitting}
+        submitDisabled={form.hasErrors}
+      >
+        <div className="space-y-4">
+          {/* Validation Error Display */}
+          {form.validationError && (
+            <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
+              {form.validationError}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Company Name *</Label>
+            <Input
+              id="name"
+              value={form.formData.name || ''}
+              onChange={(e) => form.updateField('name', e.target.value)}
+              placeholder="Enter company name"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="industry">Industry *</Label>
+            <Input
+              id="industry"
+              value={form.formData.industry || ''}
+              onChange={(e) => form.updateField('industry', e.target.value)}
+              placeholder="e.g., Technology, Manufacturing"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select 
+              value={form.formData.status} 
+              onValueChange={(value: 'active' | 'inactive' | 'prospect') => 
+                form.updateField('status', value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="prospect">Prospect</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="contact_person">Contact Person</Label>
+            <Input
+              id="contact_person"
+              value={form.formData.contact_person || ''}
+              onChange={(e) => form.updateField('contact_person', e.target.value)}
+              placeholder="Primary contact name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={form.formData.email || ''}
+              onChange={(e) => form.updateField('email', e.target.value)}
+              placeholder="company@example.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={form.formData.phone || ''}
+              onChange={(e) => form.updateField('phone', e.target.value)}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              value={form.formData.website || ''}
+              onChange={(e) => form.updateField('website', e.target.value)}
+              placeholder="https://company.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
+            <Textarea
+              id="address"
+              value={form.formData.address || ''}
+              onChange={(e) => form.updateField('address', e.target.value)}
+              placeholder="Company address..."
+              rows={3}
+            />
+          </div>
+        </div>
+      </FormSheet>
     </div>
   );
 }

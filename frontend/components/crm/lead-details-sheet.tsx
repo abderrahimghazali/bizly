@@ -4,13 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { Lead, leadsApi, UpdateLeadData } from '@/lib/api/leads';
 import { AssignableUser, dealsApi } from '@/lib/api/deals';
 import { ActivityTimeline } from './activity-timeline';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { BusinessSheet } from '@/components/ui/business-sheet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -206,16 +200,13 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
   if (!open) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:!w-[50vw] sm:!max-w-[50vw] overflow-y-auto">
-        <SheetHeader className="space-y-4 pb-6 px-6">
-          <SheetTitle className="text-2xl">
-            {loading ? 'Loading...' : !lead ? 'Lead Not Found' : lead.name}
-          </SheetTitle>
-          <SheetDescription>
-            {loading ? 'Loading lead details...' : !lead ? 'The requested lead could not be found' : 'Lead Details & Activity'}
-          </SheetDescription>
-        </SheetHeader>
+    <BusinessSheet 
+      open={open} 
+      onOpenChange={onOpenChange}
+      title={loading ? 'Loading...' : !lead ? 'Lead Not Found' : lead.name}
+      description={loading ? 'Loading lead details...' : !lead ? 'The requested lead could not be found' : 'Lead Details & Activity'}
+      size="wide"
+    >
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -232,7 +223,7 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-end space-x-2 pb-6 px-6">
+            <div className="flex items-center justify-end space-x-2 pb-6">
                   {isEditing ? (
                     <>
                       <Button 
@@ -284,7 +275,7 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
                   )}
             </div>
 
-            <div className="space-y-6 px-6">
+            <div className="space-y-6">
               {/* Lead Information */}
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
@@ -540,7 +531,6 @@ export function LeadDetailsSheet({ open, onOpenChange, leadId, onLeadUpdate }: L
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+    </BusinessSheet>
   );
 }

@@ -12,15 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { FormSheet } from '@/components/ui/business-sheet';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
@@ -292,180 +284,10 @@ export default function DealsPage() {
           </p>
         </div>
         
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <IconPlus className="mr-2 h-4 w-4" />
-              New Deal
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-            <SheetHeader className="px-6 py-6">
-              <SheetTitle>Create New Deal</SheetTitle>
-              <SheetDescription>
-                Add a new deal to your sales pipeline
-              </SheetDescription>
-            </SheetHeader>
-            
-            <form onSubmit={handleFormSubmit} className="px-6 pb-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Deal Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Enter deal title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description" 
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Deal description"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="amount">Amount ($) *</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.amount}
-                      onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="probability">Probability (%)</Label>
-                    <Input
-                      id="probability"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.probability}
-                      onChange={(e) => handleInputChange('probability', parseInt(e.target.value) || 50)}
-                      placeholder="50"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="stage">Stage</Label>
-                  <Select value={formData.stage} onValueChange={(value: Deal['stage']) => handleInputChange('stage', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(dealStages).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="company">Company</Label>
-                  <Select 
-                    value={formData.company_id?.toString() || ''} 
-                    onValueChange={(value) => handleInputChange('company_id', parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id.toString()}>
-                          {company.name} {company.industry && `(${company.industry})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="contact">Primary Contact</Label>
-                  <Select 
-                    value={formData.contact_id?.toString() || ''} 
-                    onValueChange={(value) => handleInputChange('contact_id', parseInt(value))}
-                    disabled={!selectedCompany}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={selectedCompany ? "Select contact" : "Select company first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contacts.map((contact) => (
-                        <SelectItem key={contact.id} value={contact.id.toString()}>
-                          {contact.name} {contact.position && `(${contact.position})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="expected_close_date">Expected Close Date *</Label>
-                  <Input
-                    id="expected_close_date"
-                    type="date"
-                    value={formData.expected_close_date}
-                    onChange={(e) => handleInputChange('expected_close_date', e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="source">Source</Label>
-                  <Select value={formData.source || ''} onValueChange={(value) => handleInputChange('source', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dealSources.map((source) => (
-                        <SelectItem key={source} value={source}>
-                          {source}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                    placeholder="Additional notes about this deal"
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-6">
-                <Button type="submit" disabled={submitting} className="flex-1">
-                  {submitting ? 'Creating...' : 'Create Deal'}
-                </Button>
-                <SheetClose asChild>
-                  <Button variant="outline" className="flex-1">Cancel</Button>
-                </SheetClose>
-              </div>
-            </form>
-          </SheetContent>
-        </Sheet>
+        <Button onClick={() => setSheetOpen(true)}>
+          <IconPlus className="mr-2 h-4 w-4" />
+          New Deal
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -592,17 +414,19 @@ export default function DealsPage() {
               <p className="mt-2 text-sm text-muted-foreground">Loading deals...</p>
             </div>
           ) : (
-            <DealsDataTable 
-              data={filteredDeals}
-              assignableUsers={assignableUsers}
-              onDataChange={(updatedData) => {
-                setDeals(updatedData);
-                setFilteredDeals(updatedData);
-                fetchStats(); // Refresh stats when data changes
-              }}
-              onAssignDeal={handleAssignDeal}
-              onViewDetails={handleViewDetails}
-            />
+            <div className="w-full overflow-x-auto">
+              <DealsDataTable 
+                data={filteredDeals}
+                assignableUsers={assignableUsers}
+                onDataChange={(updatedData) => {
+                  setDeals(updatedData);
+                  setFilteredDeals(updatedData);
+                  fetchStats(); // Refresh stats when data changes
+                }}
+                onAssignDeal={handleAssignDeal}
+                onViewDetails={handleViewDetails}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -615,6 +439,183 @@ export default function DealsPage() {
         assignableUsers={assignableUsers}
         onDealUpdate={handleDealUpdate}
       />
+
+      {/* Create Deal Form Sheet */}
+      <FormSheet
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) {
+            setFormData({
+              title: '',
+              description: '',
+              amount: 0,
+              probability: 50,
+              stage: 'qualified',
+              expected_close_date: '',
+              source: '',
+              notes: '',
+              company_id: undefined,
+              contact_id: undefined,
+            });
+            setSelectedCompany(null);
+            setContacts([]);
+          }
+        }}
+        title="Create New Deal"
+        description="Add a new deal to your sales pipeline"
+        size="wide"
+        onSubmit={handleFormSubmit}
+        submitLabel="Create Deal"
+        isSubmitting={submitting}
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="title">Deal Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              placeholder="Enter deal title"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description" 
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Deal description"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="amount">Amount ($) *</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                      step="0.01"
+                      value={formData.amount}
+                      onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="probability">Probability (%)</Label>
+                    <Input
+                      id="probability"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={formData.probability}
+                      onChange={(e) => handleInputChange('probability', parseInt(e.target.value) || 50)}
+                      placeholder="50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="stage">Stage</Label>
+                  <Select value={formData.stage} onValueChange={(value: Deal['stage']) => handleInputChange('stage', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(dealStages).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="company">Company</Label>
+                  <Select 
+                    value={formData.company_id?.toString() || ''} 
+                    onValueChange={(value) => handleInputChange('company_id', parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id.toString()}>
+                          {company.name} {company.industry && `(${company.industry})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="contact">Primary Contact</Label>
+                  <Select 
+                    value={formData.contact_id?.toString() || ''} 
+                    onValueChange={(value) => handleInputChange('contact_id', parseInt(value))}
+                    disabled={!selectedCompany}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedCompany ? "Select contact" : "Select company first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contacts.map((contact) => (
+                        <SelectItem key={contact.id} value={contact.id.toString()}>
+                          {contact.name} {contact.position && `(${contact.position})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="expected_close_date">Expected Close Date *</Label>
+                  <Input
+                    id="expected_close_date"
+                    type="date"
+                    value={formData.expected_close_date}
+                    onChange={(e) => handleInputChange('expected_close_date', e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="source">Source</Label>
+                  <Select value={formData.source || ''} onValueChange={(value) => handleInputChange('source', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dealSources.map((source) => (
+                        <SelectItem key={source} value={source}>
+                          {source}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    placeholder="Additional notes about this deal"
+                    rows={3}
+                  />
+          </div>
+        </div>
+      </FormSheet>
     </div>
   );
 }

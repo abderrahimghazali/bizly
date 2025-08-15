@@ -2,13 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Order, ordersApi, UpdateOrderData, orderStatuses } from '@/lib/api/orders';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { BusinessSheet } from '@/components/ui/business-sheet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -168,13 +162,17 @@ export function OrderDetailsSheet({ open, onOpenChange, orderId, onOrderUpdate }
 
   if (loading) {
     return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:!w-[50vw] sm:!max-w-[50vw] overflow-y-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <BusinessSheet 
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Loading..."
+        description="Loading order details..."
+        size="wide"
+      >
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      </BusinessSheet>
     );
   }
 
@@ -183,9 +181,12 @@ export function OrderDetailsSheet({ open, onOpenChange, orderId, onOrderUpdate }
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:!w-[50vw] sm:!max-w-[50vw] overflow-y-auto">
-        <SheetHeader className="px-6">
+    <BusinessSheet 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="wide"
+    >
+        <div className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
             <div>
               <SheetTitle className="flex items-center space-x-2">
@@ -216,9 +217,9 @@ export function OrderDetailsSheet({ open, onOpenChange, orderId, onOrderUpdate }
               )}
             </div>
           </div>
-        </SheetHeader>
+        </div>
 
-        <div className="space-y-6 py-6 px-6">
+        <div className="space-y-6">
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -567,7 +568,6 @@ export function OrderDetailsSheet({ open, onOpenChange, orderId, onOrderUpdate }
             </CardContent>
           </Card>
         </div>
-      </SheetContent>
-    </Sheet>
+    </BusinessSheet>
   );
 }

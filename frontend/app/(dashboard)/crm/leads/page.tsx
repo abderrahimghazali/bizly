@@ -20,15 +20,7 @@ import {
   IconCircleCheck,
   IconTrendingUp
 } from '@tabler/icons-react';
-import { 
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { FormSheet } from '@/components/ui/business-sheet';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -206,154 +198,10 @@ export default function LeadsPage() {
           </p>
         </div>
         
-        <Sheet open={sheetOpen} onOpenChange={(open) => {
-          setSheetOpen(open);
-          if (!open) {
-            // Reset form when closing
-            setFormData({
-              name: '',
-              email: '',
-              phone: '',
-              company: '',
-              status: 'new',
-              source: '',
-              value: 0,
-              notes: '',
-            });
-          }
-        }}>
-          <SheetTrigger asChild>
-            <Button>
-              <IconPlus className="mr-2 h-4 w-4" />
-              New Lead
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-            <SheetHeader className="px-6 py-6">
-              <SheetTitle>Create New Lead</SheetTitle>
-              <SheetDescription>
-                Add a new lead to your sales pipeline
-              </SheetDescription>
-            </SheetHeader>
-            
-            <form onSubmit={handleFormSubmit} className="px-6 pb-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Lead Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter lead name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="lead@example.com"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="company">Company</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                    placeholder="Company name"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="qualified">Qualified</SelectItem>
-                        <SelectItem value="proposal">Proposal</SelectItem>
-                        <SelectItem value="negotiation">Negotiation</SelectItem>
-                        <SelectItem value="converted">Converted</SelectItem>
-                        <SelectItem value="lost">Lost</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="value">Value ($)</Label>
-                    <Input
-                      id="value"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.value}
-                      onChange={(e) => handleInputChange('value', parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="source">Source</Label>
-                  <Select value={formData.source} onValueChange={(value) => handleInputChange('source', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="website">Website</SelectItem>
-                      <SelectItem value="referral">Referral</SelectItem>
-                      <SelectItem value="social_media">Social Media</SelectItem>
-                      <SelectItem value="email_campaign">Email Campaign</SelectItem>
-                      <SelectItem value="cold_call">Cold Call</SelectItem>
-                      <SelectItem value="trade_show">Trade Show</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                    placeholder="Additional notes about this lead"
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-6">
-                <Button type="submit" disabled={submitting} className="flex-1">
-                  {submitting ? 'Creating...' : 'Create Lead'}
-                </Button>
-                <SheetClose asChild>
-                  <Button variant="outline" className="flex-1">Cancel</Button>
-                </SheetClose>
-              </div>
-            </form>
-          </SheetContent>
-        </Sheet>
+          <Button onClick={() => setSheetOpen(true)}>
+            <IconPlus className="mr-2 h-4 w-4" />
+            New Lead
+          </Button>
       </div>
 
       {/* Stats Cards */}
@@ -499,6 +347,139 @@ export default function LeadsPage() {
         leadId={leadToView?.id || null}
         onLeadUpdate={handleLeadUpdate}
       />
+
+      {/* Create Lead Form Sheet */}
+      <FormSheet
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) {
+            // Reset form when closing
+            setFormData({
+              name: '',
+              email: '',
+              phone: '',
+              company: '',
+              status: 'new',
+              source: '',
+              value: 0,
+              notes: '',
+            });
+          }
+        }}
+        title="Create New Lead"
+        description="Add a new lead to your sales pipeline"
+        size="wide"
+        onSubmit={handleFormSubmit}
+        submitLabel="Create Lead"
+        isSubmitting={submitting}
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Lead Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              placeholder="Enter lead name"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="lead@example.com"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="company">Company</Label>
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={(e) => handleInputChange('company', e.target.value)}
+              placeholder="Company name"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="qualified">Qualified</SelectItem>
+                  <SelectItem value="proposal">Proposal</SelectItem>
+                  <SelectItem value="negotiation">Negotiation</SelectItem>
+                  <SelectItem value="converted">Converted</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="value">Value ($)</Label>
+              <Input
+                id="value"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.value}
+                onChange={(e) => handleInputChange('value', parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="source">Source</Label>
+            <Select value={formData.source} onValueChange={(value) => handleInputChange('source', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="website">Website</SelectItem>
+                <SelectItem value="referral">Referral</SelectItem>
+                <SelectItem value="social_media">Social Media</SelectItem>
+                <SelectItem value="email_campaign">Email Campaign</SelectItem>
+                <SelectItem value="cold_call">Cold Call</SelectItem>
+                <SelectItem value="trade_show">Trade Show</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Additional notes about this lead"
+              rows={3}
+            />
+          </div>
+        </div>
+      </FormSheet>
     </div>
   );
 }

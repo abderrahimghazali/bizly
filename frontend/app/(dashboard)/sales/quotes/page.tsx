@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { BusinessSheet } from '@/components/ui/business-sheet';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Plus } from 'lucide-react';
@@ -166,13 +167,13 @@ export default function QuotesPage() {
               New Quote
             </Button>
           </SheetTrigger>
-          <SheetContent className="px-6 overflow-y-auto" style={{ width: '50vw', maxWidth: '50vw' }}>
-            <SheetHeader>
-              <SheetTitle>Create New Quote</SheetTitle>
-              <SheetDescription>
-                Create a new sales quote for a customer.
-              </SheetDescription>
-            </SheetHeader>
+          <SheetContent className="overflow-y-auto" style={{ width: '50vw', maxWidth: '50vw' }}>
+            <div className="space-y-4 pb-6">
+              <div>
+                <h2 className="text-2xl font-semibold">Create New Quote</h2>
+                <p className="text-muted-foreground text-sm">Create a new sales quote for a customer.</p>
+              </div>
+            </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
                 <div className="grid grid-cols-2 gap-4">

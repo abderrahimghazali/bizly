@@ -2,13 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Deal, dealsApi, UpdateDealData, AssignableUser, dealStages } from '@/lib/api/deals';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { BusinessSheet } from '@/components/ui/business-sheet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -171,16 +165,21 @@ export function DealDetailsSheet({ open, onOpenChange, dealId, assignableUsers, 
   if (!open) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:!w-[50vw] sm:!max-w-[50vw] overflow-y-auto">
-        <SheetHeader className="space-y-4 pb-6 px-6">
-          <SheetTitle className="text-2xl">
-            {loading ? 'Loading...' : !deal ? 'Deal Not Found' : deal.title}
-          </SheetTitle>
-          <SheetDescription>
-            {loading ? 'Loading deal details...' : !deal ? 'The requested deal could not be found' : 'Deal Details & Information'}
-          </SheetDescription>
-        </SheetHeader>
+    <BusinessSheet 
+      open={open} 
+      onOpenChange={onOpenChange}
+      size="wide"
+    >
+        <div className="space-y-4 pb-6">
+          <div>
+            <h2 className="text-2xl font-semibold">
+              {loading ? 'Loading...' : !deal ? 'Deal Not Found' : deal.title}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {loading ? 'Loading deal details...' : !deal ? 'The requested deal could not be found' : 'Deal Details & Information'}
+            </p>
+          </div>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -197,7 +196,7 @@ export function DealDetailsSheet({ open, onOpenChange, dealId, assignableUsers, 
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-end space-x-2 pb-6 px-6">
+            <div className="flex items-center justify-end space-x-2 pb-6">
                   {isEditing ? (
                     <>
                       <Button 
@@ -232,7 +231,7 @@ export function DealDetailsSheet({ open, onOpenChange, dealId, assignableUsers, 
                   )}
             </div>
 
-            <div className="space-y-6 px-6">
+            <div className="space-y-6">
               {/* Deal Information */}
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
@@ -505,7 +504,6 @@ export function DealDetailsSheet({ open, onOpenChange, dealId, assignableUsers, 
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+    </BusinessSheet>
   );
 }
