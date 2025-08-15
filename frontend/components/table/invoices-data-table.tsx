@@ -48,6 +48,7 @@ interface InvoicesDataTableProps {
   loading?: boolean
   onDelete?: (invoiceId: number) => void
   onMarkAsPaid?: (invoice: Invoice) => void
+  onViewDetails?: (invoice: Invoice) => void
 }
 
 function SortableHeader({ 
@@ -75,7 +76,7 @@ function SortableHeader({
   )
 }
 
-export function InvoicesDataTable({ data, loading = false, onDelete, onMarkAsPaid }: InvoicesDataTableProps) {
+export function InvoicesDataTable({ data, loading = false, onDelete, onMarkAsPaid, onViewDetails }: InvoicesDataTableProps) {
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -276,7 +277,7 @@ export function InvoicesDataTable({ data, loading = false, onDelete, onMarkAsPai
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onViewDetails?.(invoice)}>
                 <IconEye className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>

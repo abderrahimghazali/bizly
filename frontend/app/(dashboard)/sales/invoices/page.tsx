@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { InvoicesDataTable } from '@/components/table/invoices-data-table';
+import { InvoiceDetailsSheet } from '@/components/sales/invoice-details-sheet';
 
 const createInvoiceSchema = z.object({
   company_id: z.number().min(1, 'Company is required'),
@@ -48,7 +49,9 @@ const markAsPaidSchema = z.object({
 export default function InvoicesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
@@ -181,6 +184,16 @@ export default function InvoicesPage() {
     setSelectedInvoice(invoice);
     paymentForm.setValue('amount', invoice.due_amount);
     setIsPaymentOpen(true);
+  };
+
+  const handleViewDetails = (invoice: Invoice) => {
+    setSelectedInvoiceId(invoice.id);
+    setIsDetailsSheetOpen(true);
+  };
+
+  const handleInvoiceUpdate = (updatedInvoice: Invoice) => {
+    queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    queryClient.invalidateQueries({ queryKey: ['invoice-stats'] });
   };
 
   const stats: InvoiceStats = statsData?.stats || {
@@ -576,6 +589,14 @@ export default function InvoicesPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Invoice Details Sheet */}
+      <InvoiceDetailsSheet 
+        open={isDetailsSheetOpen}
+        onOpenChange={setIsDetailsSheetOpen}
+        invoiceId={selectedInvoiceId}
+        onInvoiceUpdate={handleInvoiceUpdate}
+      />
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -628,6 +649,7 @@ export default function InvoicesPage() {
         loading={invoicesLoading}
         onDelete={handleInvoiceDelete}
         onMarkAsPaid={handleMarkAsPaid}
+        onViewDetails={handleViewDetails}
       />
     </div>
   );
