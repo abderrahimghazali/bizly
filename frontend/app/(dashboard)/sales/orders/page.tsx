@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BusinessSheet } from '@/components/ui/business-sheet';
-import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { ShoppingCart, Plus } from 'lucide-react';
@@ -206,22 +205,22 @@ export default function OrdersPage() {
             Manage sales orders and fulfillment
           </p>
         </div>
-        <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Order
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="overflow-y-auto" style={{ width: '50vw', maxWidth: '50vw' }}>
-            <div className="space-y-4 pb-6">
-              <div>
-                <h2 className="text-2xl font-semibold">Create New Order</h2>
-                <p className="text-muted-foreground text-sm">Create a new sales order from scratch or from an accepted quote.</p>
-              </div>
-            </div>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Order
+        </Button>
+      </div>
+
+      {/* Create Order Business Sheet */}
+      <BusinessSheet
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create New Order"
+        description="Create a new sales order from scratch or from an accepted quote."
+        size="wide"
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="quote_id"
@@ -477,9 +476,7 @@ export default function OrdersPage() {
                 </Button>
               </form>
             </Form>
-          </SheetContent>
-        </Sheet>
-      </div>
+      </BusinessSheet>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

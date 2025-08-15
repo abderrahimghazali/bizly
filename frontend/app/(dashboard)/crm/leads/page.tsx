@@ -257,16 +257,9 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <IconTargetArrow className="mr-2 h-5 w-5" />
-            Leads Pipeline
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+      <div className="space-y-4">
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -312,25 +305,24 @@ export default function LeadsPage() {
             </Select>
           </div>
 
-          {/* Leads Data Table */}
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Loading leads...</p>
-            </div>
-          ) : (
-            <LeadsDataTable 
-              data={filteredLeads} 
-              onDataChange={(updatedData) => {
-                setLeads(updatedData);
-                setFilteredLeads(updatedData);
-              }}
-              onConvertLead={handleConvertLead}
-              onViewDetails={handleViewDetails}
-            />
-          )}
-        </CardContent>
-      </Card>
+        {/* Leads Data Table */}
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-sm text-muted-foreground">Loading leads...</p>
+          </div>
+        ) : (
+          <LeadsDataTable 
+            data={filteredLeads} 
+            onDataChange={(updatedData) => {
+              setLeads(updatedData);
+              setFilteredLeads(updatedData);
+            }}
+            onConvertLead={handleConvertLead}
+            onViewDetails={handleViewDetails}
+          />
+        )}
+      </div>
 
       {/* Lead Conversion Modal */}
       <LeadConversionModal

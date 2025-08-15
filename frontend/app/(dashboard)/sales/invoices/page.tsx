@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BusinessSheet } from '@/components/ui/business-sheet';
-import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Plus, DollarSign, CreditCard } from 'lucide-react';
@@ -217,22 +216,22 @@ export default function InvoicesPage() {
             Manage invoices and track payments
           </p>
         </div>
-        <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Invoice
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="overflow-y-auto" style={{ width: '50vw', maxWidth: '50vw' }}>
-            <div className="space-y-4 pb-6">
-              <div>
-                <h2 className="text-2xl font-semibold">Create New Invoice</h2>
-                <p className="text-muted-foreground text-sm">Create a new invoice from scratch, an order, or a quote.</p>
-              </div>
-            </div>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Invoice
+        </Button>
+      </div>
+
+      {/* Create Invoice Business Sheet */}
+      <BusinessSheet
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create New Invoice"
+        description="Create a new invoice from scratch, an order, or a quote."
+        size="wide"
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -506,9 +505,7 @@ export default function InvoicesPage() {
                 </Button>
               </form>
             </Form>
-          </SheetContent>
-        </Sheet>
-      </div>
+      </BusinessSheet>
 
       {/* Payment Dialog */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>

@@ -356,16 +356,9 @@ export default function DealsPage() {
       )}
 
       {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <IconBriefcase className="mr-2 h-5 w-5" />
-            Deals Pipeline
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+      <div className="space-y-4">
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -407,29 +400,28 @@ export default function DealsPage() {
             </Select>
           </div>
 
-          {/* Deals Data Table */}
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Loading deals...</p>
-            </div>
-          ) : (
-            <div className="w-full overflow-x-auto">
-              <DealsDataTable 
-                data={filteredDeals}
-                assignableUsers={assignableUsers}
-                onDataChange={(updatedData) => {
-                  setDeals(updatedData);
-                  setFilteredDeals(updatedData);
-                  fetchStats(); // Refresh stats when data changes
-                }}
-                onAssignDeal={handleAssignDeal}
-                onViewDetails={handleViewDetails}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Deals Data Table */}
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-sm text-muted-foreground">Loading deals...</p>
+          </div>
+        ) : (
+          <div className="w-full overflow-x-auto">
+            <DealsDataTable 
+              data={filteredDeals}
+              assignableUsers={assignableUsers}
+              onDataChange={(updatedData) => {
+                setDeals(updatedData);
+                setFilteredDeals(updatedData);
+                fetchStats(); // Refresh stats when data changes
+              }}
+              onAssignDeal={handleAssignDeal}
+              onViewDetails={handleViewDetails}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Deal Details Sheet */}
       <DealDetailsSheet

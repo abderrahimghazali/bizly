@@ -164,7 +164,7 @@ export function DataTable<TData, TValue>({
 
       {/* Table */}
       <div className="rounded-md border overflow-x-auto">
-        <Table className="w-full table-fixed">
+        <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -172,7 +172,6 @@ export function DataTable<TData, TValue>({
                   return (
                     <TableHead 
                       key={header.id}
-                      style={{ width: header.getSize() }}
                     >
                       {header.isPlaceholder
                         ? null
@@ -208,7 +207,7 @@ export function DataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell 
                       key={cell.id}
-                      style={{ width: cell.column.getSize() }}
+                      className="whitespace-nowrap"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

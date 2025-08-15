@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PermissionWrapper } from '@/components/rbac/permission-wrapper';
 import { Button } from '@/components/ui/button';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger,
-  SheetClose 
-} from '@/components/ui/sheet';
+import { FormSheet } from '@/components/ui/business-sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -127,23 +119,70 @@ export default function ContactsPage() {
             </Button>
           }
         >
-          <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <SheetTrigger asChild>
-              <Button className="flex items-center space-x-2">
-                <IconPlus className="h-4 w-4" />
-                <span>Add Contact</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-              <SheetHeader className="px-6 py-6">
-                <SheetTitle>Add New Contact</SheetTitle>
-                <SheetDescription>
-                  Create a new contact profile to manage business relationships.
-                </SheetDescription>
-              </SheetHeader>
-              
-              <form onSubmit={handleFormSubmit} className="px-6 pb-6">
-                <div className="space-y-4">
+          <Button onClick={() => setIsCreateOpen(true)} className="flex items-center space-x-2">
+            <IconPlus className="h-4 w-4" />
+            <span>Add Contact</span>
+          </Button>
+        </PermissionWrapper>
+      </div>
+
+      {/* Permission-based content */}
+      <PermissionWrapper
+        permission="view_contacts"
+        fallback={
+          <div className="flex items-center justify-center h-32 border rounded-lg">
+            <div className="text-center">
+              <IconUser className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                You don&apos;t have permission to view contacts. Contact your administrator.
+              </p>
+            </div>
+          </div>
+        }
+      >
+        {loading ? (
+          <div className="flex items-center justify-center h-32 border rounded-lg">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-muted-foreground">Loading contacts...</p>
+            </div>
+          </div>
+        ) : (
+          <ContactsDataTable 
+            data={contacts} 
+            companies={companies}
+            onDataChange={setContacts} 
+          />
+        )}
+      </PermissionWrapper>
+
+      {/* Create Contact Form Sheet */}
+      <FormSheet
+        open={isCreateOpen}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) {
+            setFormData({
+              first_name: '',
+              last_name: '',
+              email: '',
+              phone: '',
+              position: '',
+              company_id: 0,
+              address: '',
+              notes: '',
+              is_primary: false,
+            });
+          }
+        }}
+        title="Add New Contact"
+        description="Create a new contact profile to manage business relationships."
+        size="wide"
+        onSubmit={handleFormSubmit}
+        submitLabel="Create Contact"
+        isSubmitting={submitting}
+      >
+        <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="first_name">First Name *</Label>
@@ -260,52 +299,9 @@ export default function ContactsPage() {
                       placeholder="Additional notes about this contact..."
                       rows={3}
                     />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-6">
-                  <Button type="submit" disabled={submitting} className="flex-1">
-                    {submitting ? 'Creating...' : 'Create Contact'}
-                  </Button>
-                  <SheetClose asChild>
-                    <Button variant="outline" className="flex-1">Cancel</Button>
-                  </SheetClose>
-                </div>
-              </form>
-                          </SheetContent>
-            </Sheet>
-        </PermissionWrapper>
-      </div>
-
-      {/* Permission-based content */}
-      <PermissionWrapper
-        permission="view_contacts"
-        fallback={
-          <div className="flex items-center justify-center h-32 border rounded-lg">
-            <div className="text-center">
-              <IconUser className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                You don&apos;t have permission to view contacts. Contact your administrator.
-              </p>
-            </div>
           </div>
-        }
-      >
-        {loading ? (
-          <div className="flex items-center justify-center h-32 border rounded-lg">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-muted-foreground">Loading contacts...</p>
-            </div>
-          </div>
-        ) : (
-          <ContactsDataTable 
-            data={contacts}
-            onDataChange={setContacts}
-            companies={companies}
-          />
-        )}
-      </PermissionWrapper>
+        </div>
+      </FormSheet>
     </div>
   );
 }
