@@ -184,18 +184,15 @@ export function OrderDetailsSheet({ open, onOpenChange, orderId, onOrderUpdate }
     <BusinessSheet 
       open={open} 
       onOpenChange={onOpenChange}
+      title={order.order_number}
+      description={isEditing ? 'Edit order details' : 'View order information'}
       size="wide"
     >
         <div className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
-            <div>
-              <SheetTitle className="flex items-center space-x-2">
-                <IconShoppingCart className="h-5 w-5" />
-                <span>{order.order_number}</span>
-              </SheetTitle>
-              <SheetDescription>
-                {isEditing ? 'Edit order details' : 'View order information'}
-              </SheetDescription>
+            <div className="flex items-center space-x-2">
+              <IconShoppingCart className="h-5 w-5" />
+              <span className="text-lg font-semibold">{order.order_number}</span>
             </div>
             <div className="flex items-center space-x-2">
               {!isEditing ? (

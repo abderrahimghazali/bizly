@@ -180,18 +180,15 @@ export function QuoteDetailsSheet({ open, onOpenChange, quoteId, onQuoteUpdate }
     <BusinessSheet 
       open={open} 
       onOpenChange={onOpenChange}
+      title={quote.quote_number}
+      description={isEditing ? 'Edit quote details' : 'View quote information'}
       size="wide"
     >
         <div className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
-            <div>
-              <SheetTitle className="flex items-center space-x-2">
-                <IconFileText className="h-5 w-5" />
-                <span>{quote.quote_number}</span>
-              </SheetTitle>
-              <SheetDescription>
-                {isEditing ? 'Edit quote details' : 'View quote information'}
-              </SheetDescription>
+            <div className="flex items-center space-x-2">
+              <IconFileText className="h-5 w-5" />
+              <span className="text-lg font-semibold">{quote.quote_number}</span>
             </div>
             <div className="flex items-center space-x-2">
               {!isEditing ? (
